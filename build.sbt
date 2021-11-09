@@ -11,7 +11,8 @@ scalaVersion := "2.13.4"
 
 resolvers ++= Seq(
   "CWC Releases" at "https://artifactory.k8s.awssdu.nl/artifactory/cwc-releases",
-  "CWC Snapshots" at "https://artifactory.k8s.awssdu.nl/artifactory/cwc-snapshots"
+  "CWC Snapshots" at "https://artifactory.k8s.awssdu.nl/artifactory/cwc-snapshots",
+  "Sdu Third Party Artifacts" at "https://artifactory.k8s.awssdu.nl/artifactory/third-party"
 )
 
 lazy val root = (project in file("."))
@@ -37,6 +38,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "font-awesome" % "5.12.0",
   "org.webjars" % "jquery-ui" % "1.12.1",
   "org.webjars" %% "webjars-play" % "2.8.0-1",
+  "com.saxonica" % "saxon9ee" % "9.3.0.4",
   "de.leanovate.play-mockws" %% "play-mockws" % "2.8.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 )

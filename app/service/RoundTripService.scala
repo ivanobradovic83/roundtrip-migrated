@@ -12,7 +12,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: PublishOneImportService, folderApi: FolderApi) {
+class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: PublishOneImportService, folderApi: FolderApi,
+                                 xmlTransformationService: XmlTransformationService) {
 
   private lazy val log = Logger(getClass)
 
@@ -25,8 +26,8 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
   private def roundTripFlow(roundTripDto: RoundTripDto) = {
     for {
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
-      publishOneDoc <- applyTransformation(roundTripDto, xhtml, metaXml)
-      publishOneDocId <- publishOneImportService.importDocument(roundTripDto, publishOneDoc)
+      publishOneDocXml <- applyTransformation(roundTripDto, xhtml, metaXml)
+      publishOneDocId <- publishOneImportService.importDocument(roundTripDto, publishOneDocXml)
       status <- triggerPublishOneDocPublish(roundTripDto, publishOneDocId)
     } yield status
   }
@@ -40,20 +41,21 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
     log.info(s"${roundTripDto.toString} XSL transformation started")
 
     println("----------------------------------------")
-//    val str = new String(metaXml, StandardCharsets.UTF_8)
-//    println(str)
 
-    val atom = xml.XML.load(new ByteArrayInputStream(metaXml))
-    val metaTitle = (atom \ "legalArea" \ "title").headOption.get.text
-    log.info(s"Meta title: $metaTitle")
+    val publishoneDefaultFormat =
+      <document> { xml.XML.load(new ByteArrayInputStream(xhtml)) } {xml.XML.load(new ByteArrayInputStream(metaXml))} </document>
 
-    val xhtmlAtom = xml.XML.load(new ByteArrayInputStream(xhtml))
-    val xhtmlTitle = (xhtmlAtom \ "body" \ "section" \ "h1").headOption.get.text
-    log.info(s"XHTML title: $xhtmlTitle")
+    val voorwas = xmlTransformationService.transformDocument("/xslt/1-voorwas.xsl", publishoneDefaultFormat.toString().getBytes())
+    val generiek = xmlTransformationService.transformDocument("/xslt/2-generiek.xsl", voorwas)
+    val specifiek = xmlTransformationService.transformDocument("/xslt/3-specifiek.xsl", generiek)
+    val metadata = xmlTransformationService.transformDocument("/xslt/4-metadata.xsl", specifiek)
+    xml.XML.save("/home/ape/test xhtml/transformed.xhtml", xml.XML.load(new ByteArrayInputStream(metadata)))
+
     println("----------------------------------------")
 
     log.info(s"${roundTripDto.toString} XSL transformation ended")
-    Future.successful(xhtml)
+
+    Future.successful(metadata)
   }
 
   private def triggerPublishOneDocPublish(roundTripDto: RoundTripDto, publishOneDocId: Int): Future[Unit] = {

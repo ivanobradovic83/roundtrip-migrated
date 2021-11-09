@@ -1,11 +1,13 @@
 package service
 
+import java.nio.charset.StandardCharsets
+
 import common.PublishOneConstants._
 import components.publishone.{DocumentApi, NodeOperationApi}
 import dto.RoundTripDto
 import play.api.Logger
-
 import javax.inject.Inject
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -61,7 +63,7 @@ class PublishOneImportService @Inject()(documentApi: DocumentApi, nodeOpsApi: No
   private def setDocumentContent(roundTripDto: RoundTripDto, docId: Int, content: Array[Byte]) = {
     log.info(s"${roundTripDto.toString} set PublishOne document content started")
     documentApi
-      .uploadDocumentContent(docId, "<document>bllaa</document>")
+      .uploadDocumentContent(docId, new String(content,StandardCharsets.UTF_8))
       .map(_ => log.info(s"Document $docId content set"))
   }
 
