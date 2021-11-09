@@ -1,0 +1,61 @@
+@(environment: String, swsBaseUrl: String, version: Int, alerts: Seq[Alert]=Nil)(implicit webJarsUtil: org.webjars.play.WebJarsUtil)
+@main("CWC Roundtrip PublishOne", "home", environment, alerts) {
+
+<div class="container-fluid">
+    <div class="row mt-3">
+        <div class="col sm-12">
+            <div class="card">
+                <div class="card-header bg-info text-primary">Roundtrip documents queried in SWS via PublishOne</div>
+                <div class="card-body">
+                    <form id="exportForm" action='@routes.RoundTripController.roundTripByQuery()' method="POST">
+                        <div class="form-group">
+                            <label class="control-label" for="query">SWS query</label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">@swsBaseUrl/?</span>
+                                </div>
+                                <input type="text" class="form-control" id="query" name="query" aria-describedby="basic-addon3" required="required" value="c-ARA-W3936-629">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">&version=@version&order=documentFormat</span>
+                                </div>
+                            </div>
+                     </div>
+                        <div class="form-group">
+                            <label class="control-label" for="transformation">Transformation</label>
+                            <div class="input-group mb-3">
+                                <select name="transformation" id="transformation" class="form-control">
+                                    <option value="comments">Comments</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="destination">PublishOne destination path</label>
+                            <div class="input-group mb-3">
+                                <input name="destination" id="destination" class="form-control" required="required" value="42545"/>
+                            </div>
+                        </div>
+                        <div class="form-group collapse" id="paths-form-group">
+                            <label class="control-label" for="paths">JSON Paths to return (one per line). Only applicable for CSV format.</label>
+                            <textarea class="form-control" name="paths" id="paths" rows="4" placeholder="identifier&#x0a;creator.value&#x0a;published.publicationName.identifier"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Round-trip</button>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <h4>How to use this?</h4>
+                    <p>Fill in the query (omitting the base url) and click on the Roundtrip button. All documents returned from SWS will be roundtripped via PublishOne.</p>
+                    <p>The examples of query:</p>
+                    <ul>
+                        <li>type=pn&mode=full</li>
+                        <li>published.publicationName=stb&published.publicationYear=2016&published.publicationNumber=213</li>
+                        <li>about.altKey=caonr:CAO727</li>
+                    </ul>
+                    <p>The result <strong>must</strong> be ordered by documentFormat property</p>
+                    <p>For more information about SWS Querying check <a href="@swsBaseUrl">SWS Swagger page</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+

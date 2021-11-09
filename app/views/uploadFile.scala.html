@@ -1,0 +1,44 @@
+@(environment: String, swsBaseUrl: String, contentVersion: Int, alerts: Seq[Alert]=Nil)(implicit webJarsUtil: org.webjars.play.WebJarsUtil)
+@main("CWC Roundtrip PublishOne", "bulk", environment, alerts) {
+<div class="container-fluid">
+    <div class="row mt-3">
+        <div class="col sm-12">
+            <div class="card">
+                <div class="card-header bg-info text-primary">Roundtrip documents via PublishOne by uploading a file with document keys</div>
+                <div class="card-body">
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label class="control-label" for="idList">File with id's you want to roundtrip.</label>
+                            <div class="input-group">
+                                <input type="file" id="idList" name="idList"/><br>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="transformation">Transformation</label>
+                            <div class="input-group">
+                                <select name="transformation" id="transformation" class="form-control">
+                                    <option value="comments">Comments</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="destination">PublishOne destination path</label>
+                            <div class="input-group mb-3">
+                                <input name="destination" id="destination" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group collapse" id="paths-form-group">
+                            <label class="control-label" for="paths">JSON Paths to return (one per line). Only applicable for CSV format.</label>
+                            <textarea class="form-control" name="paths" id="paths" rows="4" placeholder="identifier&#x0a;creator.value&#x0a;published.publicationName.identifier"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" disabled="disabled">Round-trip</button>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <p>Upload file which contains id's (keys) of documents you want to roundtrip.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}

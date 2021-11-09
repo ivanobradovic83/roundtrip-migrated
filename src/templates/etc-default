@@ -1,0 +1,47 @@
+# #################################
+# ##### Default configuration #####
+# #################################
+
+# Available replacements
+# ------------------------------------------------
+# ${{author}}           debian author
+# ${{descr}}            debian package description
+# ${{exec}}             startup script name
+# ${{chdir}}            app directory
+# ${{retries}}          retries for startup
+# ${{retryTimeout}}     retry timeout
+# ${{app_name}}         normalized app name
+# ${{daemon_user}}      daemon user
+# -------------------------------------------------
+
+# Setting -Xmx and -Xms in Megabyte
+# -mem 1024
+
+# Setting -X directly (-J is stripped)
+# -J-X
+# -J-Xmx1024
+
+# Add additional jvm parameters
+# -Dkey=val
+
+# For play applications you may set
+#-Dpidfile.path=/var/run/${{app_name}}/play.pid
+
+# We bootstrap the Play2 configuration from this file
+#-Dconfig.file=/etc/${{app_name}}/startup.conf
+
+# Logger configuration
+#-Dlogger.file=/etc/${{app_name}}/logger.xml
+
+# Turn on JVM debugging, open at the given port
+# -jvm-debug <port>
+
+# Don't run the java version check
+# -no-version-check
+
+JAVA_OPTS="-Dpidfile.path=/dev/null $JAVA_OPTS"
+JAVA_OPTS="-Dconfig.file=/etc/cwc-roundtrip-publishone/startup.conf $JAVA_OPTS"
+JAVA_OPTS="-Dlogger.file=/etc/cwc-roundtrip-publishone/logger.xml $JAVA_OPTS"
+JAVA_OPTS="-Dhttp.port=9081 $JAVA_OPTS"
+
+

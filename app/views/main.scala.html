@@ -1,0 +1,27 @@
+@(title: String, pageName: String, environment: String, alerts: Seq[Alert])(content: Html)(implicit webJarsUtil: org.webjars.play.WebJarsUtil)
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        @webJarsUtil.locate("bootstrap.min.css").css()
+        @webJarsUtil.locate("fontawesome.min.css").css()
+        <link rel='stylesheet' href='@routes.Assets.versioned("stylesheets/main.css")'>
+        <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/bootstrap-theme.min.css")'>
+        @webJarsUtil.locate("jquery.min.js").script()
+        @webJarsUtil.locate("jquery-ui.min.js").script()
+        @webJarsUtil.locate("js/bootstrap.min.js").script()
+        <title>@title</title>
+    </head>
+    <body>
+        <wrapper class="d-flex flex-column">
+            @navbar(pageName, environment)
+            <main class="container flex-fill">
+                @for(a <- alerts) {
+                    @alert(a)
+                }
+                @content
+            </main>
+            @footer()
+        </wrapper>
+    </body>
+</html>
