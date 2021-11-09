@@ -49,13 +49,16 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
     val generiek = xmlTransformationService.transformDocument("/xslt/2-generiek.xsl", voorwas)
     val specifiek = xmlTransformationService.transformDocument("/xslt/3-specifiek.xsl", generiek)
     val metadata = xmlTransformationService.transformDocument("/xslt/4-metadata.xsl", specifiek)
-    xml.XML.save("/home/ape/test xhtml/transformed.xhtml", xml.XML.load(new ByteArrayInputStream(metadata)))
+
+
+    val documentNode = xml.XML.load(new ByteArrayInputStream(metadata)) \ "document"
+    xml.XML.save("./transformed.xhtml", xml.XML.load(new ByteArrayInputStream(documentNode.toString().getBytes())))
 
     println("----------------------------------------")
 
     log.info(s"${roundTripDto.toString} XSL transformation ended")
 
-    Future.successful(metadata)
+    Future.successful(documentNode.toString().getBytes())
   }
 
   private def triggerPublishOneDocPublish(roundTripDto: RoundTripDto, publishOneDocId: Int): Future[Unit] = {
