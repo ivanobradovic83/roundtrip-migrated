@@ -22,8 +22,8 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
 
   private lazy val log = Logger(getClass)
 
-  def createPublication(profileId: String, folderId: Int, folderName: String): Future[(String, String)] = {
-    val requestBody = createPublicationRequestBody(folderId, folderName)
+  def createPublication(profileId: String, nodeId: Int, folderName: String): Future[(String, String)] = {
+    val requestBody = createPublicationRequestBody(nodeId, folderName)
     for {
       response <- postJson(s"$apiPublications/$profileId", requestBody)
       (ticket, resultId) <- checkPublicationCreatedState(profileId, response)
@@ -38,9 +38,9 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
     getResponse(s"$apiPublications/$profileId/$ticket/$resultId")
   }
 
-  private def createPublicationRequestBody(folderId: Int, folderName: String) = {
+  private def createPublicationRequestBody(nodeId: Int, folderName: String) = {
     val node = Json.obj(
-      "nodeId" -> folderId,
+      "nodeId" -> nodeId,
       "includeDescendants" -> true
     )
     Json.obj(

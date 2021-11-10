@@ -9,13 +9,13 @@ object PublishOneConstants {
 
   val documentTypeCommenter = "/api/documenttypes/commentaar"
 
-  lazy val apiPrefix = "api"
-  lazy val apiFolders = s"$apiPrefix/folders"
-  lazy val apiDocuments = s"$apiPrefix/documents"
-  lazy val apiNodeOps = s"$apiPrefix/nodeoperations"
-  lazy val apiOps = s"$apiPrefix/operations"
-  lazy val apiOpsAssign = s"$apiOps/assign"
-  lazy val apiOpsStateChange = s"$apiOps/statechange"
-  lazy val apiPublications = s"$apiPrefix/publications"
+  val apiPrefix = "api"
+  val apiFolders = s"$apiPrefix/folders"
+  val apiDocuments = s"$apiPrefix/documents"
+  val apiNodeOps = s"$apiPrefix/nodeoperations"
+  val apiOps = s"$apiPrefix/operations"
+  val apiOpsAssign = s"$apiOps/assign"
+  val apiOpsStateChange = s"$apiOps/statechange"
+  val apiPublications = s"$apiPrefix/publications"
 
 }

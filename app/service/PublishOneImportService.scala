@@ -1,46 +1,58 @@
 package service
 
 import java.nio.charset.StandardCharsets
-
 import util.PublishOneConstants._
-import components.publishone.{DocumentApi, NodeOperationApi}
-import dto.RoundTripDto
+import components.publishone.{DocumentApi, FolderApi, NodeOperationApi}
+import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
-import javax.inject.Inject
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
   * This class imports document to PublishOne by executing next steps:
   *  <pre>
+  * - create PublishOne folder where imported document will be placed
   * - create PublishOne document with metadata
   * - set given XML content to the document
   * </pre>
+  * @param folderApi PublishOne Folder API
   * @param documentApi PublishOne Document API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
-class PublishOneImportService @Inject()(documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
+class PublishOneImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
 
   private lazy val log = Logger(getClass)
 
-  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte]): Future[Int] = {
+  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte]): Future[ImportedDocumentDto] = {
     log.info(s"${roundTripDto.toString} Import document started")
     for {
-      docId <- createDocument(roundTripDto)
+      folderId <- createFolder(roundTripDto)
+      docId <- createDocument(roundTripDto, folderId)
       _ <- setDocumentContent(roundTripDto, docId, content)
       _ <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId imported"))
-    } yield docId
+    } yield ImportedDocumentDto(folderId, roundTripDto.docKey, Seq(docId))
   }
 
-  private def createDocument(roundTripDto: RoundTripDto): Future[Int] = {
-    log.info(s"${roundTripDto.toString} Create document started")
+  private def createFolder(roundTripDto: RoundTripDto): Future[Int] = {
+    log.info(s"${roundTripDto.toString} Create folder started")
+    folderApi
+      .createFolder(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter)
+      .map(response => {
+        val id = (response \ "id").as[Int]
+        log.info(s"${roundTripDto.toString} Folder $id created")
+        id
+      })
+  }
+
+  private def createDocument(roundTripDto: RoundTripDto, folderId: Int): Future[Int] = {
+    log.info(s"${roundTripDto.toString} Create document in folder $folderId started")
     documentApi
-      .createDocument(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter)
+      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter)
       .map(response => {
         val docId = (response \ "id").as[Int]
-        val docName = (response \ "title").as[String]
-        log.info(s"${roundTripDto.toString} Document $docId with name $docName created")
+        log.info(s"${roundTripDto.toString} Document $docId created in folder $folderId")
         docId
       })
   }

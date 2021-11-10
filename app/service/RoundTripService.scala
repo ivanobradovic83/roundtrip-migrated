@@ -29,9 +29,8 @@ class RoundTripService @Inject()(swsClient: SwsApi,
     for {
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
       publishOneDocXml <- applyTransformation(roundTripDto, xhtml, metaXml)
-      publishOneDocId <- publishOneImportService.importDocument(roundTripDto, publishOneDocXml)
-      status <- publishOnePublishService.publish(roundTripDto,
-                                                 ImportedDocumentDto(roundTripDto.destination.toInt, "round-trip-test", Seq(publishOneDocId)))
+      importedDoc <- publishOneImportService.importDocument(roundTripDto, publishOneDocXml)
+      status <- publishOnePublishService.publish(roundTripDto, importedDoc)
     } yield status
   }
 

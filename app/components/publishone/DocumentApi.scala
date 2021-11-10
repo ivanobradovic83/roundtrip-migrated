@@ -19,8 +19,8 @@ import scala.concurrent.Future
 class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
-  def createDocument(folderId: Int, docName: String, docType: String): Future[JsValue] = {
-    val requestBody = createDocumentRequestBody(folderId, docName, docType)
+  def createDocument(parentId: Int, name: String, docType: String): Future[JsValue] = {
+    val requestBody = createDocumentRequestBody(parentId, name, docType)
     postJson(apiDocuments, requestBody)
   }
 
@@ -28,15 +28,15 @@ class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     putXml(s"$apiDocuments/$docId/xml", content)
   }
 
-  private def createDocumentRequestBody(folderId: Int, docName: String, docType: String) = {
+  private def createDocumentRequestBody(parentId: Int, name: String, docType: String) = {
     val editorialDate = Json.obj(
       "name" -> "editorialDate",
       "value" -> LocalDate.now(),
       "updateOperation" -> "replace"
     )
     Json.obj(
-      "parentId" -> folderId,
-      "name" -> docName,
+      "parentId" -> parentId,
+      "name" -> name,
       "documentTypePath" -> docType,
       "metadataFields" -> Seq(editorialDate)
     )
