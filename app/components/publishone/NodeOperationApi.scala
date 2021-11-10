@@ -1,31 +1,26 @@
 package components.publishone
 
-import common.PublishOneConstants._
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
-import play.api.{Configuration, Logger}
+import util.ConfigUtils
+import util.PublishOneConstants._
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
 
 /**
   * PublishOne NodeOperation API
   *
-  * @param config configuration
+  * @param configUtils configuration
   * @param wsClient web client
   * @param accessTokenHandler access token handler
   */
-class NodeOperationApi @Inject()(config: Configuration, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
-    extends BasicApi(config, wsClient, accessTokenHandler) {
+class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
+    extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
   private lazy val log = Logger(getClass)
-
-  private val checkNodeOpsSuccessStateMaxAttempts =
-    Try("publishOne.nodeOps.checkSuccessResponse.maxAttempts").map(config.get[Int]).getOrElse(0)
-  private val checkNodeOpsSuccessStateDelay =
-    Try("publishOne.nodeOps.checkSuccessResponse.delay").map(config.get[Long]).getOrElse(0L)
 
   def getNodeOperationStatus(id: Int): Future[JsValue] = {
     getJson(s"$apiNodeOps/$id")
@@ -46,32 +41,6 @@ class NodeOperationApi @Inject()(config: Configuration, wsClient: WSClient, acce
       response <- postJson(apiOpsStateChange, requestBody)
       status <- checkNodeOpsSuccessState(response)
     } yield status
-  }
-
-  private def checkNodeOpsSuccessState(response: JsValue, counter: Int = checkNodeOpsSuccessStateMaxAttempts): Future[Boolean] = {
-    log.debug(s"Checking node operation status: $response")
-    val id = (response \ "id").as[Int]
-    val state = (response \ "state").as[String]
-    state match {
-      case "succeeded" => Future.successful(true)
-      case "failed"    => throw new Exception(s"Node operation failed: $response")
-      case _           => recheckNodeOpsSuccessState(id, counter)
-    }
-  }
-
-  private def recheckNodeOpsSuccessState(id: Int, counter: Int): Future[Boolean] = {
-    if (counter > 0) {
-      Thread.sleep(checkNodeOpsSuccessStateDelay)
-      for {
-        response <- getNodeOperationStatus(id)
-        status <- checkNodeOpsSuccessState(response, counter - 1)
-      } yield status
-    } else {
-      log.warn(
-        s"Node operation ($id) state checked maximum number of attempts " +
-          s"($checkNodeOpsSuccessStateMaxAttempts) without detecting success state")
-      Future.successful(false)
-    }
   }
 
   private def assignAuthorRequestBody(docId: Int, userId: String) = {
@@ -101,6 +70,32 @@ class NodeOperationApi @Inject()(config: Configuration, wsClient: WSClient, acce
       "currentStateId" -> currentStateId,
       "nextStateId" -> nextStateId
     )
+  }
+
+  private def checkNodeOpsSuccessState(response: JsValue, counter: Int = configUtils.checkOperationStateMaxAttempts): Future[Boolean] = {
+    log.debug(s"Checking node operation status: $response")
+    val id = (response \ "id").as[Int]
+    val state = (response \ "state").as[String]
+    state match {
+      case "succeeded" => Future.successful(true)
+      case "failed"    => throw new Exception(s"Node operation failed: $response")
+      case _           => recheckNodeOpsSuccessState(id, counter)
+    }
+  }
+
+  private def recheckNodeOpsSuccessState(id: Int, counter: Int): Future[Boolean] = {
+    if (counter > 0) {
+      Thread.sleep(configUtils.checkOperationStateDelay)
+      for {
+        response <- getNodeOperationStatus(id)
+        status <- checkNodeOpsSuccessState(response, counter - 1)
+      } yield status
+    } else {
+      log.warn(
+        s"Node operation ($id) state checked maximum number of attempts " +
+          s"($configUtils.checkOperationStateMaxAttempts) without detecting success state")
+      Future.successful(false)
+    }
   }
 
 }

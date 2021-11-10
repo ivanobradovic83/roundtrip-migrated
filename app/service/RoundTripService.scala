@@ -2,9 +2,8 @@ package service
 
 import components.publishone.FolderApi
 import components.sws.SwsApi
-import dto.RoundTripDto
+import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
-import play.api.libs.json.JsValue
 
 import java.io.ByteArrayInputStream
 import javax.inject.Inject
@@ -12,8 +11,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: PublishOneImportService, folderApi: FolderApi,
-                                 xmlTransformationService: XmlTransformationService) {
+class RoundTripService @Inject()(swsClient: SwsApi,
+                                 publishOneImportService: PublishOneImportService,
+                                 folderApi: FolderApi,
+                                 xmlTransformationService: XmlTransformationService,
+                                 publishOnePublishService: PublishOnePublishService) {
 
   private lazy val log = Logger(getClass)
 
@@ -28,7 +30,8 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
       publishOneDocXml <- applyTransformation(roundTripDto, xhtml, metaXml)
       publishOneDocId <- publishOneImportService.importDocument(roundTripDto, publishOneDocXml)
-      status <- triggerPublishOneDocPublish(roundTripDto, publishOneDocId)
+      status <- publishOnePublishService.publish(roundTripDto,
+                                                 ImportedDocumentDto(roundTripDto.destination.toInt, "round-trip-test", Seq(publishOneDocId)))
     } yield status
   }
 
@@ -50,7 +53,6 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
     val specifiek = xmlTransformationService.transformDocument("/xslt/3-specifiek.xsl", generiek)
     val metadata = xmlTransformationService.transformDocument("/xslt/4-metadata.xsl", specifiek)
 
-
     val documentNode = xml.XML.load(new ByteArrayInputStream(metadata)) \ "document"
     xml.XML.save("./transformed.xhtml", xml.XML.load(new ByteArrayInputStream(documentNode.toString().getBytes())))
 
@@ -61,21 +63,4 @@ class RoundTripService @Inject()(swsClient: SwsApi, publishOneImportService: Pub
     Future.successful(documentNode.toString().getBytes())
   }
 
-  private def triggerPublishOneDocPublish(roundTripDto: RoundTripDto, publishOneDocId: Int): Future[Unit] = {
-    log.info(s"${roundTripDto.toString} PublishOne publish trigger started")
-
-    folderApi
-      .getFolderById(roundTripDto.destination.toInt)
-      .flatMap(response => {
-        printPublishOneFolderDetails(response)
-        log.info(s"${roundTripDto.toString} PublishOne publish trigger ended")
-        Future.successful()
-      })
-  }
-
-  private def printPublishOneFolderDetails(response: JsValue) = {
-    val folderId = response \ "id"
-    val folderName = response \ "name"
-    println(s"folderId: $folderId  folderName: $folderName")
-  }
 }

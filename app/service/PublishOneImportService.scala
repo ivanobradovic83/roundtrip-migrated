@@ -2,7 +2,7 @@ package service
 
 import java.nio.charset.StandardCharsets
 
-import common.PublishOneConstants._
+import util.PublishOneConstants._
 import components.publishone.{DocumentApi, NodeOperationApi}
 import dto.RoundTripDto
 import play.api.Logger
@@ -13,11 +13,10 @@ import scala.concurrent.Future
 
 /**
   * This class imports document to PublishOne by executing next steps:
-  * - creating PublishOne document
-  * - assigning current system user as document Author
-  * - changing document state from Created to Write
-  * - setting given XML content to the document
-  *
+  *  <pre>
+  * - create PublishOne document with metadata
+  * - set given XML content to the document
+  * </pre>
   * @param documentApi PublishOne Document API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
@@ -26,45 +25,32 @@ class PublishOneImportService @Inject()(documentApi: DocumentApi, nodeOpsApi: No
   private lazy val log = Logger(getClass)
 
   def importDocument(roundTripDto: RoundTripDto, content: Array[Byte]): Future[Int] = {
-    log.info(s"${roundTripDto.toString} import PublishOne document started")
+    log.info(s"${roundTripDto.toString} Import document started")
     for {
       docId <- createDocument(roundTripDto)
-      _ <- assignAuthor(roundTripDto, docId) zip changeStateFromCreatedToWrite(roundTripDto, docId)
       _ <- setDocumentContent(roundTripDto, docId, content)
+      _ <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId imported"))
     } yield docId
   }
 
   private def createDocument(roundTripDto: RoundTripDto): Future[Int] = {
-    log.info(s"${roundTripDto.toString} create PublishOne document started")
+    log.info(s"${roundTripDto.toString} Create document started")
     documentApi
-      .createDocument(roundTripDto.destination.toInt, s"${roundTripDto.docKey}-tmp", "/api/documenttypes/commentaar")
+      .createDocument(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter)
       .map(response => {
         val docId = (response \ "id").as[Int]
         val docName = (response \ "title").as[String]
-        log.info(s"Created document: $docId with name: $docName")
+        log.info(s"${roundTripDto.toString} Document $docId with name $docName created")
         docId
       })
   }
 
-  private def assignAuthor(roundTripDto: RoundTripDto, docId: Int) = {
-    log.info(s"${roundTripDto.toString} assign PublishOne author started")
-    nodeOpsApi
-      .assignCurrentUserAsAuthor(docId)
-      .map(_ => log.info(s"Author assigned to document: $docId"))
-  }
-
-  private def changeStateFromCreatedToWrite(roundTripDto: RoundTripDto, docId: Int) = {
-    log.info(s"${roundTripDto.toString} change PublishOne document state from created to write started")
-    nodeOpsApi
-      .changeState(docId, documentStateCreated, documentStateWrite)
-      .map(_ => log.info(s"State changed for document: $docId to write"))
-  }
-
   private def setDocumentContent(roundTripDto: RoundTripDto, docId: Int, content: Array[Byte]) = {
-    log.info(s"${roundTripDto.toString} set PublishOne document content started")
-    documentApi
-      .uploadDocumentContent(docId, new String(content,StandardCharsets.UTF_8))
-      .map(_ => log.info(s"Document $docId content set"))
+    log.info(s"${roundTripDto.toString} Setting document content $docId started")
+    for {
+      _ <- documentApi.uploadDocumentContent(docId, new String(content, StandardCharsets.UTF_8))
+      result <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId content set"))
+    } yield result
   }
 
 }

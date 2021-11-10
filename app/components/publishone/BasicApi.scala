@@ -1,10 +1,11 @@
 package components.publishone
 
 import components.common.ErrorResponseHandler
+import play.api.Logger
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
-import play.api.{Configuration, Logger}
+import util.ConfigUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -12,13 +13,12 @@ import scala.concurrent.Future
 /**
   * This class contains basic methods for Rest communication with PublishOne
   *
-  * @param config configuration
+  * @param configUtils configuration
   * @param wsClient web client
   * @param accessTokenHandler access token handler
   */
-abstract class BasicApi(config: Configuration, wsClient: WSClient, accessTokenHandler: AccessTokenHandler) {
+abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler) {
 
-  private lazy val baseUrl = config.get[String]("publishOne.url")
   private lazy val log = Logger(getClass)
 
   protected def postJson(relativeUrl: String, requestBody: JsObject): Future[JsValue] = {
@@ -30,13 +30,16 @@ abstract class BasicApi(config: Configuration, wsClient: WSClient, accessTokenHa
     executeRequest(putApiCall)
   }
 
-  protected def putXml(relativeUrl: String, requestBody: String): Future[JsValue] = {
+  protected def putXml(relativeUrl: String, requestBody: String): Future[WSResponse] = {
     val putApiCall = (at: String) =>
       createWsRequest(relativeUrl, at)
         .addHttpHeaders("Content-Type" -> "application/xml")
         .put(requestBody)
-        .map(handleJsonResponse)
-    executeRequest(putApiCall)
+//        .map(handleJsonResponse)
+    for {
+      accessToken <- accessTokenHandler.accessToken
+      response <- putApiCall(accessToken)
+    } yield response
   }
 
   protected def getJson(relativeUrl: String): Future[JsValue] = {
@@ -48,6 +51,14 @@ abstract class BasicApi(config: Configuration, wsClient: WSClient, accessTokenHa
     executeRequest(getApiCall)
   }
 
+  protected def getResponse(relativeUrl: String): Future[WSResponse] = {
+    val getApiCall = (at: String) => createWsRequest(relativeUrl, at).get()
+    for {
+      accessToken <- accessTokenHandler.accessToken
+      response <- getApiCall(accessToken)
+    } yield response
+  }
+
   protected def executeRequest(apiCall: String => Future[JsValue]): Future[JsValue] = {
     for {
       accessToken <- accessTokenHandler.accessToken
@@ -56,7 +67,7 @@ abstract class BasicApi(config: Configuration, wsClient: WSClient, accessTokenHa
   }
 
   protected def createWsRequest(relativeUrl: String, accessToken: String): WSRequest = {
-    val url = s"$baseUrl/$relativeUrl"
+    val url = s"${configUtils.baseUrl}/$relativeUrl"
     log.debug(s"Executing API $url")
     wsClient
       .url(url)

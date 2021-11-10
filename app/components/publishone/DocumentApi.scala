@@ -1,9 +1,9 @@
 package components.publishone
 
-import common.PublishOneConstants._
-import play.api.Configuration
 import play.api.libs.json.{JsValue, Json}
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{WSClient, WSResponse}
+import util.ConfigUtils
+import util.PublishOneConstants._
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -12,19 +12,19 @@ import scala.concurrent.Future
 /**
   * PublishOne Document API
   *
-  * @param config configuration
+  * @param configUtils configuration
   * @param wsClient web client
   * @param accessTokenHandler access token handler
   */
-class DocumentApi @Inject()(config: Configuration, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
-    extends BasicApi(config, wsClient, accessTokenHandler) {
+class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
+    extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
   def createDocument(folderId: Int, docName: String, docType: String): Future[JsValue] = {
     val requestBody = createDocumentRequestBody(folderId, docName, docType)
     postJson(apiDocuments, requestBody)
   }
 
-  def uploadDocumentContent(docId: Int, content: String): Future[JsValue] = {
+  def uploadDocumentContent(docId: Int, content: String): Future[WSResponse] = {
     putXml(s"$apiDocuments/$docId/xml", content)
   }
 

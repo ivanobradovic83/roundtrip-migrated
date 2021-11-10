@@ -1,25 +1,22 @@
 package components.publishone
 
-import common.PublishOneConstants._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
-import play.api.{Configuration, Logger}
+import util.ConfigUtils
+import util.PublishOneConstants._
 
-import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
 
 /**
   * PublishOne Folder API
   *
-  * @param config configuration
+  * @param configUtils configuration
   * @param wsClient web client
   * @param accessTokenHandler access token handler
   */
-class FolderApi @Inject()(config: Configuration, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
-    extends BasicApi(config, wsClient, accessTokenHandler) {
+class FolderApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
+    extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
   def getFolderById(id: Int): Future[JsValue] = {
     getJson(s"$apiFolders/$id")

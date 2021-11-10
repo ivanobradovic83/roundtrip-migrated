@@ -22,12 +22,12 @@ class SwsApi @Inject()(config: Configuration, wsClient: WSClient) {
   private lazy val log = Logger(getClass)
   private lazy val baseUrl = config.get[String]("cwc.sws.url")
 
-  def getXhtml(docKey: String): Future[Array[Byte]] = executeRequest(docKey, "xhtml")
+  def getXhtml(docKey: String): Future[Array[Byte]] = executeRequest(s"$docKey/$docKey.xhtml")
 
-  def getMetaXml(docKey: String): Future[Array[Byte]] = executeRequest(docKey, "xml")
+  def getMetaXml(docKey: String): Future[Array[Byte]] = executeRequest(s"$docKey/$docKey.xml")
 
-  private def executeRequest(docKey: String, docType: String): Future[Array[Byte]] = {
-    val url = s"$baseUrl/$docKey/$docKey.$docType"
+  private def executeRequest(relativePath: String): Future[Array[Byte]] = {
+    val url = s"$baseUrl/$relativePath"
     log.debug(s"Fetching document $url")
     wsClient
       .url(url)

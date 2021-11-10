@@ -60,7 +60,6 @@ class AccessTokenHandler @Inject()(config: Configuration, ws: WSClient) {
 
   private def extractAccessTokenFromResponse(resp: WSResponse) = {
     accessTokenCached = (resp.json \ "access_token").as[String]
-    println(s"access token loaded: $accessTokenCached")
     accessTokenCached
   }
 

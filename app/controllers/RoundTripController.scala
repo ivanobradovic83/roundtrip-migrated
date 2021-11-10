@@ -32,9 +32,7 @@ class RoundTripController @Inject()(config: Configuration, cc: ControllerCompone
   }
 
   private def startRoundTrip(query: Option[String], transformation: String, destination: Option[String]) = {
-    println("*********************** round-trip controller started")
     roundTripService.roundTrip(RoundTripDto(UUID.randomUUID.toString, query.get, transformation, destination.get))
-    println("*********************** round-trip controller ended")
     Ok(views.html.index(environment, swsBaseUrl, defaultContentVersion, Seq(SucessAlert("Round-trip", "Round-trip started successfully!"))))
   }
 
