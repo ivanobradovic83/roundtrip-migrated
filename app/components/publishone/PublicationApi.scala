@@ -35,7 +35,7 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
   }
 
   def getFinishedPublicationFile(profileId: String, ticket: String, resultId: String): Future[WSResponse] = {
-    getResponse(s"$apiPublications/$profileId/$ticket/$resultId")
+    get(s"$apiPublications/$profileId/$ticket/$resultId")
   }
 
   def deletePublication(profileId: String, ticket: String): Future[Unit] = {

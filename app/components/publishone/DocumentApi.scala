@@ -24,7 +24,7 @@ class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     postJson(apiDocuments, requestBody)
   }
 
-  def uploadDocumentContent(docId: Int, content: String): Future[WSResponse] = {
+  def uploadDocumentContent(docId: Int, content: String): Future[Unit] = {
     putXml(s"$apiDocuments/$docId/xml", content)
   }
 

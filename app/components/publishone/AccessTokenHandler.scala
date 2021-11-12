@@ -1,7 +1,8 @@
 package components.publishone
 
+import play.api.Logger
 import play.api.libs.ws.{WSClient, WSResponse}
-import play.api.{Configuration, Logger}
+import util.ConfigUtils
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,16 +12,13 @@ import scala.concurrent.Future
   * This class is used to handles Access Tokens for PublishOne API.
   * It reads properties, used to ask for a token, from configuration file.
   * Access Token is valid for an hour. If cached token is about to expire it will be reloaded.
+  *
+  * @param configUtils configuration
+  * @param wsClient web client
   */
 @Singleton
-class AccessTokenHandler @Inject()(config: Configuration, ws: WSClient) {
+class AccessTokenHandler @Inject()(configUtils: ConfigUtils, wsClient: WSClient) {
 
-  private lazy val publishOneIsUrl: String = config.get[String]("publishOne.is.url")
-  private lazy val publishOneUrl = config.get[String]("publishOne.url")
-  private lazy val publishOneUsername: String = config.get[String]("publishOne.username")
-  private lazy val publishOnePassword: String = config.get[String]("publishOne.password")
-  private lazy val publishOneClientId: String = config.get[String]("publishOne.clientId")
-  private lazy val publishOneClientSecret: String = config.get[String]("publishOne.clientSecret")
   private lazy val log = Logger(getClass)
 
   private var accessTokenCached: String = null
@@ -42,7 +40,8 @@ class AccessTokenHandler @Inject()(config: Configuration, ws: WSClient) {
 
   private def loadAccessToken() = {
     log.debug("loading access token ...")
-    ws.url(s"$publishOneIsUrl/connect/token")
+    wsClient
+      .url(s"${configUtils.publishOneIsUrl}/connect/token")
       .post(accessTokenRequestPostParameters)
       .map(extractAccessTokenFromResponse)
   }
@@ -50,11 +49,11 @@ class AccessTokenHandler @Inject()(config: Configuration, ws: WSClient) {
   private def accessTokenRequestPostParameters = {
     Map(
       "grant_type" -> Seq("password"),
-      "username" -> Seq(s"$publishOneUsername"),
-      "password" -> Seq(s"$publishOnePassword"),
+      "username" -> Seq(s"${configUtils.publishOneUsername}"),
+      "password" -> Seq(s"${configUtils.publishOnePassword}"),
       "scope" -> Seq("mainmodule-api"),
-      "client_id" -> Seq(s"$publishOneClientId"),
-      "client_secret" -> Seq(s"$publishOneClientSecret")
+      "client_id" -> Seq(s"${configUtils.publishOneClientId}"),
+      "client_secret" -> Seq(s"${configUtils.publishOneClientSecret}")
     )
   }
 
@@ -64,7 +63,8 @@ class AccessTokenHandler @Inject()(config: Configuration, ws: WSClient) {
   }
 
   private def loadUserId() = {
-    ws.url(s"$publishOneUrl/api/users/current")
+    wsClient
+      .url(s"${configUtils.publishOneUrl}/api/users/current")
       .addHttpHeaders("Authorization" -> s"Bearer $accessTokenCached")
       .get()
       .map(extractUserIdFromResponse)

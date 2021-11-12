@@ -13,7 +13,6 @@ import scala.util.{Failure, Success, Try}
 
 class RoundTripService @Inject()(swsClient: SwsApi,
                                  publishOneImportService: PublishOneImportService,
-                                 folderApi: FolderApi,
                                  xmlTransformationService: XmlTransformationService,
                                  publishOnePublishService: PublishOnePublishService) {
 

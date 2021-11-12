@@ -18,4 +18,9 @@ object PublishOneConstants {
   val apiOpsStateChange = s"$apiOps/statechange"
   val apiPublications = s"$apiPrefix/publications"
 
+  val methodPost = "POST"
+  val methodPut = "PUT"
+  val methodGet = "GET"
+  val methodDelete = "DELETE"
+
 }
