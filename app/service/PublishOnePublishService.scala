@@ -16,10 +16,11 @@ import scala.concurrent.Future
   *  This class publishes document from PublishOne to CWC by executing next steps:
   *  <pre>
   * - set Publiceren state to all documents in imported folder
-  * - create publication
+  * - create publication at PublishOne
   * - download publication file after it's created
   * - save publication to local file system (PoC implementation)
   *   in production ready implementation publication file should be streamed from PublishOne to FTP server
+  * - delete publication from PublishOne
   * </pre>
   * @param publicationApi PublishOne Publication API
   * @param nodeOpsApi PublishOne NodeOperation API
@@ -42,8 +43,9 @@ class PublishOnePublishService @Inject()(publicationApi: PublicationApi, nodeOps
       _ <- changeDocumentsStateFromCreatedToPublish(logPrefix, importedDocDto.documentIds)
       (ticket, resultId) <- createPublication(logPrefix, importedDocDto)
       response <- getFinishedPublicationFile(logPrefix, ticket, resultId)
-      status <- transferFileToFtp(logPrefix, response)
-    } yield status
+      fileTransferStatus <- transferFileToFtp(logPrefix, response)
+      _ <- deletePublicationIfFIleTransferred(logPrefix, fileTransferStatus, ticket)
+    } yield fileTransferStatus
   }
 
   private def changeDocumentsStateFromCreatedToPublish(logPrefix: String, docIds: Seq[Int]): Future[ListBuffer[Unit]] = {
@@ -88,6 +90,24 @@ class PublishOnePublishService @Inject()(publicationApi: PublicationApi, nodeOps
     outputStream.close()
     log.info(s"$logPrefix Publication file stored to file system ${file.getAbsolutePath}")
     Future.successful(true)
+  }
+
+  private def deletePublicationIfFIleTransferred(logPrefix: String, fileTransferStatus: Boolean, ticket: String): Future[Unit] = {
+    val deletePublicationLogPrefix = s"$logPrefix Delete publication $publicationProfileSduV3Zip/$ticket"
+    if (fileTransferStatus) deletePublication(deletePublicationLogPrefix, ticket)
+    else deletePublicationWarning(deletePublicationLogPrefix)
+  }
+
+  private def deletePublication(deletePublicationLogPrefix: String, ticket: String) = {
+    log.info(s"$deletePublicationLogPrefix started")
+    publicationApi
+      .deletePublication(publicationProfileSduV3Zip, ticket)
+      .map(_ => log.info(s"$deletePublicationLogPrefix done"))
+  }
+
+  private def deletePublicationWarning(deletePublicationLogPrefix: String) = {
+    log.warn(s"$deletePublicationLogPrefix is not done because file transfer was not successful")
+    Future.successful()
   }
 
 }

@@ -38,6 +38,10 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
     getResponse(s"$apiPublications/$profileId/$ticket/$resultId")
   }
 
+  def deletePublication(profileId: String, ticket: String): Future[Unit] = {
+    delete(s"$apiPublications/$profileId/$ticket")
+  }
+
   private def createPublicationRequestBody(nodeId: Int, folderName: String) = {
     val node = Json.obj(
       "nodeId" -> nodeId,

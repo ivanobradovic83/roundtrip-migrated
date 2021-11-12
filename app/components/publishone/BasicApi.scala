@@ -26,8 +26,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
       createWsRequest(relativeUrl, at)
         .addHttpHeaders("Content-Type" -> "application/json")
         .post(requestBody)
-        .map(handleJsonResponse)
-    executeRequest(putApiCall)
+    executeRequest(putApiCall).map(handleJsonResponse)
   }
 
   protected def putXml(relativeUrl: String, requestBody: String): Future[WSResponse] = {
@@ -35,11 +34,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
       createWsRequest(relativeUrl, at)
         .addHttpHeaders("Content-Type" -> "application/xml")
         .put(requestBody)
-//        .map(handleJsonResponse)
-    for {
-      accessToken <- accessTokenHandler.accessToken
-      response <- putApiCall(accessToken)
-    } yield response
+    executeRequest(putApiCall)
   }
 
   protected def getJson(relativeUrl: String): Future[JsValue] = {
@@ -47,19 +42,20 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
       createWsRequest(relativeUrl, at)
         .addHttpHeaders("Accept" -> "application/json")
         .get()
-        .map(handleJsonResponse)
-    executeRequest(getApiCall)
+    executeRequest(getApiCall).map(handleJsonResponse)
+  }
+
+  protected def delete(relativeUrl: String): Future[Unit] = {
+    val deleteApiCall = (at: String) => createWsRequest(relativeUrl, at).delete()
+    executeRequest(deleteApiCall).map(handleNoContentResponse)
   }
 
   protected def getResponse(relativeUrl: String): Future[WSResponse] = {
     val getApiCall = (at: String) => createWsRequest(relativeUrl, at).get()
-    for {
-      accessToken <- accessTokenHandler.accessToken
-      response <- getApiCall(accessToken)
-    } yield response
+    executeRequest(getApiCall)
   }
 
-  protected def executeRequest(apiCall: String => Future[JsValue]): Future[JsValue] = {
+  protected def executeRequest(apiCall: String => Future[WSResponse]): Future[WSResponse] = {
     for {
       accessToken <- accessTokenHandler.accessToken
       response <- apiCall(accessToken)
@@ -78,6 +74,13 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
     response.status match {
       case OK | CREATED | NO_CONTENT => response.json
       case _                         => ErrorResponseHandler.handle(response)
+    }
+  }
+
+  protected def handleNoContentResponse(response: WSResponse): Unit = {
+    response.status match {
+      case OK | NO_CONTENT =>
+      case _               => ErrorResponseHandler.handle(response)
     }
   }
 
