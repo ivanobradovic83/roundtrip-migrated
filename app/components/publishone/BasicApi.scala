@@ -7,7 +7,7 @@ import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import util.PublishOneConstants._
-import util.{ConfigUtils, PublishOneConstants}
+import util.ConfigUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -23,7 +23,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
 
   private lazy val log = Logger(getClass)
 
-  protected def post(relativeUrl: String, headers: Seq[(String, String)], requestBody: JsObject): Future[WSResponse] = {
+  protected def post(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: JsObject): Future[WSResponse] = {
     val wsRequest = (at: String) =>
       createWsRequest(methodPost, relativeUrl, at)
         .addHttpHeaders(headers: _*)
@@ -36,7 +36,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
       .map(handleJsonResponse)
   }
 
-  protected def put(relativeUrl: String, headers: Seq[(String, String)], requestBody: String): Future[WSResponse] = {
+  protected def put(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: String): Future[WSResponse] = {
     val wsRequest = (at: String) =>
       createWsRequest(methodPut, relativeUrl, at)
         .addHttpHeaders(headers: _*)
@@ -49,13 +49,9 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
       .map(handleNoContentResponse)
   }
 
-  protected def get(relativeUrl: String, headers: Seq[(String, String)]): Future[WSResponse] = {
+  protected def get(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty): Future[WSResponse] = {
     val wsRequest = (at: String) => createWsRequest(methodGet, relativeUrl, at).addHttpHeaders(headers: _*)
     executeRequest(wsRequest)
-  }
-
-  protected def get(relativeUrl: String): Future[WSResponse] = {
-    get(relativeUrl, Seq.empty)
   }
 
   protected def getJson(relativeUrl: String): Future[JsValue] = {

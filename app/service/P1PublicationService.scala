@@ -25,7 +25,7 @@ import scala.concurrent.Future
   * @param publicationApi PublishOne Publication API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
-class PublishOnePublishService @Inject()(publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
+class P1PublicationService @Inject()(publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
 
   private lazy val publicationProfileSduV3Zip = "14-publishone-customxml-16"
   private lazy val log = Logger(getClass)
@@ -107,7 +107,7 @@ class PublishOnePublishService @Inject()(publicationApi: PublicationApi, nodeOps
 
   private def deletePublicationWarning(deletePublicationLogPrefix: String) = {
     log.warn(s"$deletePublicationLogPrefix is not done because file transfer was not successful")
-    Future.successful()
+    Future.unit
   }
 
 }

@@ -1,11 +1,11 @@
 package service
 
-import java.nio.charset.StandardCharsets
-import util.PublishOneConstants._
 import components.publishone.{DocumentApi, FolderApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
+import util.PublishOneConstants._
 
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -21,7 +21,7 @@ import scala.concurrent.Future
   * @param documentApi PublishOne Document API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
-class PublishOneImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
+class P1ImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
 
   private lazy val log = Logger(getClass)
 
