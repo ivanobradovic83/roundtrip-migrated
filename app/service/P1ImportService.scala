@@ -3,6 +3,7 @@ package service
 import components.publishone.{DocumentApi, FolderApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
+import play.api.libs.json.JsValue
 import util.PublishOneConstants._
 
 import java.nio.charset.StandardCharsets
@@ -25,11 +26,11 @@ class P1ImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, 
 
   private lazy val log = Logger(getClass)
 
-  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte]): Future[ImportedDocumentDto] = {
+  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte], docJsonMeta: JsValue): Future[ImportedDocumentDto] = {
     log.info(s"${roundTripDto.toString} Import document started")
     for {
       folderId <- createFolder(roundTripDto)
-      docId <- createDocument(roundTripDto, folderId)
+      docId <- createDocument(roundTripDto, folderId, docJsonMeta)
       _ <- setDocumentContent(roundTripDto, docId, content)
       _ <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId imported"))
     } yield ImportedDocumentDto(folderId, roundTripDto.docKey, Seq(docId))
@@ -46,10 +47,10 @@ class P1ImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, 
       })
   }
 
-  private def createDocument(roundTripDto: RoundTripDto, folderId: Int): Future[Int] = {
+  private def createDocument(roundTripDto: RoundTripDto, folderId: Int, docJsonMeta: JsValue): Future[Int] = {
     log.info(s"${roundTripDto.toString} Create document in folder $folderId started")
     documentApi
-      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter)
+      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter, docJsonMeta)
       .map(response => {
         val docId = (response \ "id").as[Int]
         log.info(s"${roundTripDto.toString} Document $docId created in folder $folderId")

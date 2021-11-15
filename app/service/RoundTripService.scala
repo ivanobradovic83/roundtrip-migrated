@@ -12,7 +12,8 @@ import scala.util.{Failure, Success, Try}
 class RoundTripService @Inject()(swsClient: SwsApi,
                                  xmlTransformationService: XmlTransformationService,
                                  p1ImportService: P1ImportService,
-                                 p1PublicationService: P1PublicationService) {
+                                 p1PublicationService: P1PublicationService,
+                                 metadataMappingService: MetadataMappingService) {
 
   private lazy val log = Logger(getClass)
 
@@ -26,7 +27,8 @@ class RoundTripService @Inject()(swsClient: SwsApi,
     for {
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
       (transformedDocumentXml, transformedMetaXml) <- xmlTransformationService.transform(roundTripDto, xhtml, metaXml)
-      importedDoc <- p1ImportService.importDocument(roundTripDto, transformedDocumentXml)
+      docJsonMeta <- metadataMappingService.mapXmlToJsonMetadata(transformedMetaXml)
+      importedDoc <- p1ImportService.importDocument(roundTripDto, transformedDocumentXml, docJsonMeta)
       status <- p1PublicationService.publish(roundTripDto, importedDoc)
     } yield status
   }
