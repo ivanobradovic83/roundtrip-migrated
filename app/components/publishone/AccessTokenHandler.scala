@@ -39,9 +39,10 @@ class AccessTokenHandler @Inject()(configUtils: ConfigUtils, wsClient: WSClient)
   }
 
   private def loadAccessToken() = {
-    log.debug("loading access token ...")
+    val url = s"${configUtils.publishOneIsUrl}/connect/token"
+    log.debug(s"Executing API POST $url")
     wsClient
-      .url(s"${configUtils.publishOneIsUrl}/connect/token")
+      .url(url)
       .post(accessTokenRequestPostParameters)
       .map(extractAccessTokenFromResponse)
   }
@@ -63,8 +64,10 @@ class AccessTokenHandler @Inject()(configUtils: ConfigUtils, wsClient: WSClient)
   }
 
   private def loadUserId() = {
+    val url = s"${configUtils.publishOneUrl}/api/users/current"
+    log.debug(s"Executing API GET $url")
     wsClient
-      .url(s"${configUtils.publishOneUrl}/api/users/current")
+      .url(url)
       .addHttpHeaders("Authorization" -> s"Bearer $accessTokenCached")
       .get()
       .map(extractUserIdFromResponse)
