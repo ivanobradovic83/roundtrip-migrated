@@ -5,43 +5,53 @@ import play.api.libs.json._
 
 import java.io.ByteArrayInputStream
 import javax.inject.Inject
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.xml.Node
 
+/**
+  * This class maps given metadata in XML format to Json format by executing next steps:
+  * <pre>
+  * - parse given metadataXml
+  * - traverse through all Xml metadata
+  * -  maps values from XML to Json value
+  * - returns list of metadata in Json format which are ready to be used with PublishOne API
+  * </pre>
+  *
+  * @param metadataApi PublishOne Metadata API
+  */
 class MetadataMappingService @Inject()(metadataApi: MetadataApi) {
 
-  def mapXmlToJsonMetadata(metaXml: Array[Byte]): Future[JsValue] =
+  def mapXmlToJsonMetadata(metadataXml: Array[Byte]): Future[JsValue] =
     for {
-      metadataDefinitions <- getMetadataDefinitions
-      jsonMetadata <- mapXmlToJsonMetadata(metaXml, metadataDefinitions)
-    } yield jsonMetadata
+      metadataDefs <- getMetadataDefinitions
+      metadataJson <- mapXmlToJsonMetadata(metadataXml, metadataDefs)
+    } yield metadataJson
 
-  private def mapXmlToJsonMetadata(metaXml: Array[Byte], metadataDefinitions: Seq[JsValue]): Future[JsValue] = {
-    getJsonMetadataValues(metaXml, metadataDefinitions)
-      .map(convertToJsonMetadataSeq)
+  private def mapXmlToJsonMetadata(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[JsValue] =
+    getJsonMetadataValues(metadataXml, metadataDefs)
+      .map(convertToSeqOfJsonMetadata)
       .map(jsonMetadataSeq => Json.toJson(jsonMetadataSeq))
+
+  private def getJsonMetadataValues(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, JsValue)]] = {
+    val metadataXmlChildren = xml.XML.load(new ByteArrayInputStream(metadataXml)).child
+    val getJsonMetadataValueFutures = metadataXmlChildren.map(getJsonMetadataValue(metadataDefs, _))
+    Future.sequence(getJsonMetadataValueFutures)
   }
 
-  private def getJsonMetadataValues(metaXml: Array[Byte], metadataDefinitions: Seq[JsValue]): Future[Seq[(String, JsValue)]] = {
-    val futures = ListBuffer[Future[(String, JsValue)]]()
-    val metaXmlChildren = xml.XML.load(new ByteArrayInputStream(metaXml)).child
-    for (metaXmlChild <- metaXmlChildren) {
-      val metaName = metaXmlChild.label
-      val metaDefinition = getMetadataDefinition(metadataDefinitions, metaName)
-      val metaValueFuture: Future[JsValue] = getMetadataType(metaDefinition) match {
-        case "selectList" if isMultiSelectList(metaDefinition) => handleMultiSelectList(metaXmlChild, metaDefinition)
-        case "selectList"                                      => handleSingleSelectList(metaXmlChild, metaDefinition)
-        case "multipleStringValue"                             => handleMultipleStringValue(metaXmlChild)
-        case _                                                 => Future.successful(JsString(metaXmlChild.text))
-      }
-      futures += metaValueFuture.map(value => (metaName, value))
+  private def getJsonMetadataValue(metadataDefs: Seq[JsValue], metadataXmlChild: Node): Future[(String, JsValue)] = {
+    val metadataName = metadataXmlChild.label
+    val metadataDef = getMetadataDefinition(metadataDefs, metadataName)
+    val getMetadataValue: Future[JsValue] = getMetadataType(metadataDef) match {
+      case "selectList" if isMultiSelectList(metadataDef) => handleMultiSelectList(metadataXmlChild, metadataDef)
+      case "selectList"                                   => handleSingleSelectList(metadataXmlChild, metadataDef)
+      case "multipleStringValue"                          => handleMultipleStringValue(metadataXmlChild)
+      case _                                              => Future.successful(JsString(metadataXmlChild.text))
     }
-    Future.sequence(futures.toSeq)
+    getMetadataValue.map(value => (metadataName, value))
   }
 
-  private def convertToJsonMetadataSeq(jsonMetadataValues: Seq[(String, JsValue)]): Seq[JsObject] = {
+  private def convertToSeqOfJsonMetadata(jsonMetadataValues: Seq[(String, JsValue)]): Seq[JsObject] = {
     jsonMetadataValues
       .filter(_._2 != JsNull)
       .map(createJsonMetadata)
@@ -54,20 +64,20 @@ class MetadataMappingService @Inject()(metadataApi: MetadataApi) {
       "updateOperation" -> "replace"
     )
 
-  private def handleSingleSelectList(metaXmlChild: Node, metadataDefinition: JsValue): Future[JsValue] = {
-    val itemKey = metaXmlChild.attribute("key").map(keyNode => keyNode.text).head
-    getAndMapValueListItemKeysToIds(metadataDefinition, true, itemKey)
+  private def handleSingleSelectList(metadataXmlChild: Node, metadataDef: JsValue): Future[JsValue] = {
+    val itemKey = metadataXmlChild.attribute("key").map(keyNode => keyNode.text).head
+    getAndMapValueListItemKeysToIds(metadataDef, true, itemKey)
   }
 
-  private def handleMultiSelectList(metaXmlChild: Node, metadataDefinition: JsValue): Future[JsValue] = {
-    val itemKeys = (metaXmlChild \\ "item")
+  private def handleMultiSelectList(metadataXmlChild: Node, metadataDef: JsValue): Future[JsValue] = {
+    val itemKeys = (metadataXmlChild \\ "item")
       .flatMap(itemNode => itemNode.attribute("key"))
       .map(keyNode => keyNode.text)
-    getAndMapValueListItemKeysToIds(metadataDefinition, false, itemKeys: _*)
+    getAndMapValueListItemKeysToIds(metadataDef, false, itemKeys: _*)
   }
 
-  private def getAndMapValueListItemKeysToIds(metadataDefinition: JsValue, singleSelect: Boolean, itemKeys: String*): Future[JsValue] = {
-    val valueListPath = (metadataDefinition \ "settings" \ "valueListPath").as[String]
+  private def getAndMapValueListItemKeysToIds(metadataDef: JsValue, singleSelect: Boolean, itemKeys: String*): Future[JsValue] = {
+    val valueListPath = (metadataDef \ "settings" \ "valueListPath").as[String]
     metadataApi
       .getValueListItems(valueListPath)
       .map(allItems => mapValueListItemKeysToIds(allItems.as[JsArray], singleSelect, itemKeys))
@@ -82,8 +92,8 @@ class MetadataMappingService @Inject()(metadataApi: MetadataApi) {
     else stringifyJson(Json.toJson(itemIds))
   }
 
-  private def handleMultipleStringValue(metaXmlNode: Node): Future[JsValue] = {
-    val stringValues = metaXmlNode.child.map(node => node.text).toSeq
+  private def handleMultipleStringValue(metadataXmlChild: Node): Future[JsValue] = {
+    val stringValues = metadataXmlChild.child.map(node => node.text).toSeq
     if (stringValues.isEmpty) Future.successful(JsNull)
     else Future.successful(stringifyJson(Json.toJson(stringValues)))
   }
