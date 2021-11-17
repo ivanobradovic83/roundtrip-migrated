@@ -21,18 +21,18 @@ class RoundTripController @Inject()(config: Configuration, cc: ControllerCompone
 
   def roundTripByQuery = Action(parse.formUrlEncoded) { implicit request =>
     val query = request.body("query").headOption.filter(_.trim.nonEmpty)
-    val transformation = request.body("transformation").headOption.getOrElse("")
+    val documentType = request.body("documentType").headOption.getOrElse("")
     val destination = request.body("destination").headOption.filter(_.trim.nonEmpty)
     lazy val queryValidation = validateQuery(query)
     lazy val destinationValidation = validateDestination(destination)
 
     if (queryValidation.isDefined) badRequestResponse(queryValidation)
     else if (destinationValidation.isDefined) badRequestResponse(destinationValidation)
-    else startRoundTrip(query, transformation, destination)
+    else startRoundTrip(query, documentType, destination)
   }
 
-  private def startRoundTrip(query: Option[String], transformation: String, destination: Option[String]) = {
-    roundTripService.roundTrip(RoundTripDto(UUID.randomUUID.toString, query.get, transformation, destination.get))
+  private def startRoundTrip(query: Option[String], docType: String, destination: Option[String]) = {
+    roundTripService.roundTrip(RoundTripDto(UUID.randomUUID.toString, query.get, docType, destination.get))
     Ok(views.html.index(environment, swsBaseUrl, defaultContentVersion, Seq(SucessAlert("Round-trip", "Round-trip started successfully!"))))
   }
 

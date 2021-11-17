@@ -8,6 +8,8 @@ object PublishOneConstants {
   val documentStatePublish = 182
 
   val documentTypeCommenter = "/api/documenttypes/commentaar"
+  val documentTypeCommenterId = "commentaar"
+  val documentTypeCommentaarXsltLocation = "/xslt/commentaar"
 
   val apiPrefix = "api"
   val apiFolders = s"$apiPrefix/folders"

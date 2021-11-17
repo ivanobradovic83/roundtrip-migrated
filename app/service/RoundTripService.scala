@@ -26,7 +26,7 @@ class RoundTripService @Inject()(swsClient: SwsApi,
   private def roundTripFlow(roundTripDto: RoundTripDto) = {
     for {
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
-      (transformedDocumentXml, transformedMetaXml) <- xmlTransformationService.transform(roundTripDto, xhtml, metaXml)
+      (transformedDocumentXml, transformedMetaXml) <- xmlTransformationService.transform(roundTripDto, xhtml, metaXml, roundTripDto.docType)
       docJsonMeta <- metadataMappingService.mapXmlToJsonMetadata(transformedMetaXml)
       importedDoc <- p1ImportService.importDocument(roundTripDto, transformedDocumentXml, docJsonMeta)
       status <- p1PublicationService.publish(roundTripDto, importedDoc)

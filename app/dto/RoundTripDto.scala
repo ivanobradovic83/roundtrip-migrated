@@ -1,3 +1,3 @@
 package dto
 
-case class RoundTripDto(id: String, docKey: String, transformation: String, destination: String)
+case class RoundTripDto(id: String, docKey: String, docType: String, destination: String)

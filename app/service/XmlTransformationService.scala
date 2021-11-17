@@ -2,25 +2,23 @@ package service
 
 import dto.RoundTripDto
 import play.api.Logger
-import util.XmlTransformer
+import util.{PublishOneConstants, XmlTransformer}
 
 import java.io.ByteArrayInputStream
+import java.io.File
 import scala.concurrent.Future
+
 
 class XmlTransformationService {
 
   private lazy val log = Logger(getClass)
-  private lazy val voorwasTransformer = new XmlTransformer("/xslt/1-voorwas.xsl")
-  private lazy val generiekTransformer = new XmlTransformer("/xslt/2-generiek.xsl")
-  private lazy val specifiekTransformer = new XmlTransformer("/xslt/3-specifiek.xsl")
-  private lazy val metadataTransformer = new XmlTransformer("/xslt/4-metadata.xsl")
 
-  def transform(roundTripDto: RoundTripDto, xhtml: Array[Byte], metaXml: Array[Byte]): Future[(Array[Byte], Array[Byte])] = {
+  def transform(roundTripDto: RoundTripDto, xhtml: Array[Byte], metaXml: Array[Byte], documentTypeId: String): Future[(Array[Byte], Array[Byte])] = {
     log.info(s"${roundTripDto.toString} XSL transformation started")
 
     val transformationInputXml =
       <document> { xml.XML.load(new ByteArrayInputStream(xhtml)) } {xml.XML.load(new ByteArrayInputStream(metaXml))} </document>
-    val transformedXml = applyAllTransformations(transformationInputXml.toString().getBytes)
+    val transformedXml = applyAllTransformations(transformationInputXml.toString().getBytes, documentTypeId)
     val transformedDocumentXml = (xml.XML.load(new ByteArrayInputStream(transformedXml)) \ "document").toString.getBytes
     val transformedMetaXml = (xml.XML.load(new ByteArrayInputStream(transformedXml)) \ "meta").toString.getBytes
     // tmp
@@ -32,10 +30,26 @@ class XmlTransformationService {
     Future.successful((transformedDocumentXml, transformedMetaXml))
   }
 
-  private def applyAllTransformations(transformationInputXml: Array[Byte]) = {
-    val voorwas = voorwasTransformer.transform(transformationInputXml)
-    val generiek = generiekTransformer.transform(voorwas)
-    val specifiek = specifiekTransformer.transform(generiek)
-    metadataTransformer.transform(specifiek)
+  private def applyAllTransformations(transformationInputXml: Array[Byte], documentType: String): Array[Byte] = {
+    val xsltPath = getTransformationsPathByDocType(documentType)
+    var currentTransformation = transformationInputXml;
+
+    for(transformationName <- getTransformationNames(xsltPath)) {
+      currentTransformation = new XmlTransformer(s"$xsltPath/$transformationName").transform(currentTransformation)
+    }
+    currentTransformation
   }
+
+  private def getTransformationsPathByDocType(documentTypeId: String): String ={
+    documentTypeId match {
+      case "commentaar" => PublishOneConstants.documentTypeCommentaarXsltLocation
+    }
+  }
+
+  private def getTransformationNames(xslLocation: String): Array[String] = {
+    val files: Array[File] = new File(s"./conf/$xslLocation").listFiles()
+    val list = for(file <- files) yield file.getName
+    list.sortWith(_ < _)
+  }
+
 }
