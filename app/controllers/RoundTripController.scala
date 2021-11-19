@@ -2,7 +2,7 @@ package controllers
 
 import dto.RoundTripDto
 import org.webjars.play.WebJarsUtil
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
 import service.RoundTripService
 import views.alerts.{Alert, Warning, Success => SucessAlert}
@@ -10,6 +10,9 @@ import views.alerts.{Alert, Warning, Success => SucessAlert}
 import java.util.UUID
 import javax.inject.Inject
 
+/**
+  * Controller which handles round-trip by query feature
+  */
 class RoundTripController @Inject()(config: Configuration, cc: ControllerComponents, roundTripService: RoundTripService)(
     implicit webJarsUtil: WebJarsUtil)
     extends AbstractController(cc) {
@@ -19,7 +22,11 @@ class RoundTripController @Inject()(config: Configuration, cc: ControllerCompone
   lazy val defaultContentVersion: Int = config.get[Int]("cwc.sws.contentVersion")
   lazy val log: Logger = Logger(getClass)
 
-  def roundTripByQuery = Action(parse.formUrlEncoded) { implicit request =>
+  def index: Action[AnyContent] = Action {
+    Ok(views.html.index(environment, swsBaseUrl, defaultContentVersion))
+  }
+
+  def roundTripByQuery: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
     val query = request.body("query").headOption.filter(_.trim.nonEmpty)
     val documentType = request.body("documentType").headOption.getOrElse("")
     val destination = request.body("destination").headOption.filter(_.trim.nonEmpty)

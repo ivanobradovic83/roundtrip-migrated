@@ -15,12 +15,7 @@ class Application @Inject()(config: Configuration, cc: ControllerComponents)(imp
   lazy val defaultContentVersion: Int = config.get[Int]("cwc.sws.contentVersion")
   lazy val log: Logger = Logger(getClass)
 
-  def index: Action[AnyContent] = Action {
-    Ok(views.html.index(environment, swsBaseUrl, defaultContentVersion))
-  }
-
   def status: Action[AnyContent] = Action { implicit request =>
-    request2session(request).get("username")
     val statusReport = StatusReport("CWC Round-trip PublishOne", build.BuildInfo.version, operational = true, Some("Running"))
     Ok(Json.toJson(statusReport))
   }

@@ -72,7 +72,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
 
   protected def createWsRequest(method: String, relativeUrl: String, accessToken: String): WSRequest = {
     val url = s"${configUtils.publishOneUrl}/$relativeUrl"
-    log.debug(s"Executing API $method $url")
+    log.trace(s"Executing API $method $url")
     val wsRequest = wsClient
       .url(url)
       .withMethod(method)

@@ -15,6 +15,7 @@ object PublishOneConstants {
   val apiPrefix = "api"
   val apiFolders = s"$apiPrefix/folders"
   val apiDocuments = s"$apiPrefix/documents"
+  val apiNodes = s"$apiPrefix/nodes"
   val apiNodeOps = s"$apiPrefix/nodeoperations"
   val apiOps = s"$apiPrefix/operations"
   val apiOpsAssign = s"$apiOps/assign"

@@ -1,0 +1,43 @@
+@(environment: String, swsBaseUrl: String, version: Int, alerts: Seq[Alert]=Nil)(implicit webJarsUtil: org.webjars.play.WebJarsUtil)
+@main("CWC map authors to PublishOne", "mapAuthors", environment, alerts) {
+
+<div class="container-fluid">
+    <div class="row mt-3">
+        <div class="col sm-12">
+            <div class="card">
+                <div class="card-header bg-info text-primary">Map authors from documents queried in SWS to PublishOne authors</div>
+                <div class="card-body">
+                    <form id="exportForm" action='@routes.AuthorMapperController.map()' method="POST">
+                        <div class="form-group">
+                            <label class="control-label" for="query">SWS query</label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">@swsBaseUrl/?</span>
+                                </div>
+                                <input type="text" class="form-control" id="query" name="query" aria-describedby="basic-addon3" required="required" value="">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">&order=documentFormat</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Map authors</button>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <h4>How to use this?</h4>
+                    <p>Fill in the query (omitting the base url) and click on the <i>Map authors</i> button. All document metadata returned from SWS will be processed and authors will be matched against PublishOne authors.</p>
+                    <p>The examples of query:</p>
+                    <ul>
+                        <li>source=cat</li>
+                        <li>published.publicationName=stb&published.publicationYear=2016&published.publicationNumber=213</li>
+                        <li>about.altKey=caonr:CAO727</li>
+                    </ul>
+                    <p>The result <strong>must</strong> be ordered by documentFormat property</p>
+                    <p>For more information about SWS Querying check <a href="@swsBaseUrl">SWS Swagger page</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+

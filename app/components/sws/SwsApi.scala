@@ -28,7 +28,7 @@ class SwsApi @Inject()(config: Configuration, wsClient: WSClient) {
 
   private def executeRequest(relativePath: String): Future[Array[Byte]] = {
     val url = s"$baseUrl/$relativePath"
-    log.debug(s"Fetching document $url")
+    log.trace(s"Fetching document $url")
     wsClient
       .url(url)
       .get()

@@ -38,6 +38,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "font-awesome" % "5.12.0",
   "org.webjars" % "jquery-ui" % "1.12.1",
   "org.webjars" %% "webjars-play" % "2.8.0-1",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.6",
   "com.saxonica" % "saxon9ee" % "9.3.0.4",
   "de.leanovate.play-mockws" %% "play-mockws" % "2.8.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
@@ -94,10 +95,12 @@ publish in Debian := (publish in Debian).triggeredBy(publish in Compile).value
 dockerBaseImage := "117533191630.dkr.ecr.eu-west-1.amazonaws.com/upstream-fork/openjdk:8"
 dockerExposedPorts := Seq(9081)
 dockerExposedVolumes := Seq("/data/event-logs")
-dockerEntrypoint := Seq("bin/sdu-cwc-roundtrip-publishone",
-                        "-Dconfig.file=/etc/sdu-cwc-roundtrip-publishone/startup.conf",
-                        "-Dlogger.file=conf/docker-logger.xml",
-                        "-Dhttp.port=9081")
+dockerEntrypoint := Seq(
+  "bin/sdu-cwc-roundtrip-publishone",
+  "-Dconfig.file=/etc/sdu-cwc-roundtrip-publishone/startup.conf",
+  "-Dlogger.file=conf/docker-logger.xml",
+  "-Dhttp.port=9081"
+)
 dockerRepository := Some("117533191630.dkr.ecr.eu-west-1.amazonaws.com")
 dockerUsername := Some("cwc")
 dockerUpdateLatest := false
