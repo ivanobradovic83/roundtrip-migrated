@@ -1,4 +1,4 @@
-package service.authorMapper.model
+package service.authormapper.model
 
 case class Author(identifier: String, name: String, familyName: String, givenName: String, initials: String, documentIdentifier: String)
 

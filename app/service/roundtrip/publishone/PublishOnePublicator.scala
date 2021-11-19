@@ -1,4 +1,4 @@
-package service
+package service.roundtrip.publishone
 
 import components.publishone.{NodeOperationApi, PublicationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
@@ -25,7 +25,7 @@ import scala.concurrent.Future
   * @param publicationApi PublishOne Publication API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
-class P1PublicationService @Inject()(publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
+class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
 
   private lazy val publicationProfileSduV3Zip = "14-publishone-customxml-16"
   private lazy val log = Logger(getClass)

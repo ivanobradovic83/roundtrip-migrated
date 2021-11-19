@@ -1,4 +1,4 @@
-package service
+package service.roundtrip.publishone
 
 import components.publishone.{DocumentApi, FolderApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
@@ -22,7 +22,7 @@ import scala.concurrent.Future
   * @param documentApi PublishOne Document API
   * @param nodeOpsApi PublishOne NodeOperation API
   */
-class P1ImportService @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
+class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi) {
 
   private lazy val log = Logger(getClass)
 

@@ -1,16 +1,14 @@
-package service
+package service.roundtrip.xml
 
 import dto.RoundTripDto
 import play.api.Logger
 import util.PublishOneConstants.{xsltLocation, xsltRootLocation}
 import util.XmlTransformer
 
-import java.io.ByteArrayInputStream
-import java.io.File
+import java.io.{ByteArrayInputStream, File}
 import scala.concurrent.Future
 
-
-class XmlTransformationService {
+class SwsToPublishOneXmlTransformer {
 
   private lazy val log = Logger(getClass)
 
@@ -35,7 +33,7 @@ class XmlTransformationService {
     val xsltFolderPath = s"$xsltRootLocation/${roundTripDto.docType}"
     var currentTransformation = transformationInputXml
 
-    for(xsltName <- getXslTransformationNames(xsltFolderPath)) {
+    for (xsltName <- getXslTransformationNames(xsltFolderPath)) {
       log.debug(s"${roundTripDto.toString} applying XSLT  $xsltFolderPath/$xsltName")
       currentTransformation = new XmlTransformer(s"$xsltLocation/${roundTripDto.docType}/$xsltName").transform(currentTransformation)
     }

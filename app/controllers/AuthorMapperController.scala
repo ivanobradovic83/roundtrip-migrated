@@ -3,7 +3,7 @@ package controllers
 import org.webjars.play.WebJarsUtil
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
-import service.authorMapper.AuthorMapperService
+import service.authormapper.AuthorMapperService
 import views.alerts.{Alert, Warning, Success => SucessAlert}
 
 import javax.inject.Inject

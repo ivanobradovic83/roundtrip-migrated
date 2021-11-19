@@ -1,8 +1,8 @@
-package service.authorMapper
+package service.authormapper
 
 import components.publishone.AccessTokenHandler
 import components.sws.{SwsApi, SwsSourceApi}
-import service.authorMapper.mapper.{AkkaAuthorMapperExecutor, AuthorFolderMapper}
+import service.authormapper.mapper.{AkkaAuthorMapperExecutor, AuthorFolderMapper}
 
 import javax.inject.Inject
 

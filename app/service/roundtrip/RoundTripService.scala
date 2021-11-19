@@ -1,8 +1,11 @@
-package service
+package service.roundtrip
 
 import components.sws.SwsApi
 import dto.RoundTripDto
 import play.api.Logger
+import service.roundtrip.metadata.MetadataMapper
+import service.roundtrip.publishone.{PublishOneImporter, PublishOnePublicator}
+import service.roundtrip.xml.SwsToPublishOneXmlTransformer
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,10 +13,10 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class RoundTripService @Inject()(swsClient: SwsApi,
-                                 xmlTransformationService: XmlTransformationService,
-                                 p1ImportService: P1ImportService,
-                                 p1PublicationService: P1PublicationService,
-                                 metadataMappingService: MetadataMappingService) {
+                                 swsToPublishOneXmlTransformer: SwsToPublishOneXmlTransformer,
+                                 metadataMapper: MetadataMapper,
+                                 publishOneImporter: PublishOneImporter,
+                                 publishOnePublicator: PublishOnePublicator) {
 
   private lazy val log = Logger(getClass)
 
@@ -26,10 +29,10 @@ class RoundTripService @Inject()(swsClient: SwsApi,
   private def roundTripFlow(roundTripDto: RoundTripDto) = {
     for {
       (xhtml, metaXml) <- swsClient.getXhtml(roundTripDto.docKey) zip swsClient.getMetaXml(roundTripDto.docKey)
-      (transformedDocumentXml, transformedMetaXml) <- xmlTransformationService.transform(roundTripDto, xhtml, metaXml)
-      docJsonMeta <- metadataMappingService.mapXmlToJsonMetadata(transformedMetaXml)
-      importedDoc <- p1ImportService.importDocument(roundTripDto, transformedDocumentXml, docJsonMeta)
-      status <- p1PublicationService.publish(roundTripDto, importedDoc)
+      (publishOneDocumentXml, publishOneMetaXml) <- swsToPublishOneXmlTransformer.transform(roundTripDto, xhtml, metaXml)
+      docJsonMeta <- metadataMapper.mapXmlToJsonMetadata(publishOneMetaXml)
+      importedDoc <- publishOneImporter.importDocument(roundTripDto, publishOneDocumentXml, docJsonMeta)
+      status <- publishOnePublicator.publish(roundTripDto, importedDoc)
     } yield status
   }
 

@@ -4,7 +4,7 @@ import dto.RoundTripDto
 import org.webjars.play.WebJarsUtil
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
-import service.RoundTripService
+import service.roundtrip.RoundTripService
 import views.alerts.{Alert, Warning, Success => SucessAlert}
 
 import java.util.UUID

@@ -1,4 +1,4 @@
-package service.authorMapper.mapper
+package service.authormapper.mapper
 
 import akka.actor.ActorSystem
 import akka.stream.IOResult
@@ -8,7 +8,7 @@ import com.github.tototoshi.csv.CSVWriter
 import components.publishone.AccessTokenHandler
 import components.sws.{SwsApi, SwsSourceApi}
 import play.api.Logger
-import service.authorMapper.model.{Author, AuthorFolder}
+import service.authormapper.model.{Author, AuthorFolder}
 
 import java.io.{ByteArrayInputStream, PrintWriter, StringWriter}
 import java.nio.file.StandardOpenOption.{APPEND, CREATE, WRITE}

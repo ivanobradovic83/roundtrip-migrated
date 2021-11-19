@@ -1,9 +1,9 @@
-package service.authorMapper.mapper
+package service.authormapper.mapper
 
 import components.publishone.NodeApi
 import play.api.Logger
 import play.api.libs.json.{JsNull, JsValue, Json, Reads}
-import service.authorMapper.model.{Author, AuthorFolder}
+import service.authormapper.model.{Author, AuthorFolder}
 import util.StringUtils.notEmpty
 
 import javax.inject.Inject

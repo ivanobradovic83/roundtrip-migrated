@@ -1,4 +1,4 @@
-package service
+package service.roundtrip.metadata
 
 import components.publishone.MetadataApi
 import play.api.libs.json._
@@ -20,7 +20,7 @@ import scala.xml.Node
   *
   * @param metadataApi PublishOne Metadata API
   */
-class MetadataMappingService @Inject()(metadataApi: MetadataApi) {
+class MetadataMapper @Inject()(metadataApi: MetadataApi) {
 
   def mapXmlToJsonMetadata(metadataXml: Array[Byte]): Future[JsValue] =
     for {
