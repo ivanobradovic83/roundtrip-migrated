@@ -7,10 +7,11 @@ object PublishOneConstants {
   val documentStateWrite = 177
   val documentStatePublish = 182
 
-  val documentTypeAuthor = "/api/documenttypes/auteursbeschrijvingen"
   val documentTypeKeyAuthor = "auteursbeschrijvingen"
-  val documentTypeCommenter = "/api/documenttypes/commentaar"
   val documentTypeKeyCommenter = "commentaar"
+  val documentTypeApiPrefix = "/api/documenttypes"
+  val documentTypeAuthor = s"$documentTypeApiPrefix/$documentTypeKeyAuthor"
+  val documentTypeCommenter = s"$documentTypeApiPrefix/$documentTypeKeyCommenter"
 
   val listItemsFamilyNamePrefix = "familyNamePrefix"
   val listItemsPrefix = "prefix"
@@ -33,14 +34,9 @@ object PublishOneConstants {
   val apiPublications = s"$apiPrefix/publications"
   val apiDocumentTypes = s"$apiPrefix/documenttypes"
 
-  val methodPost = "POST"
-  val methodPut = "PUT"
-  val methodGet = "GET"
-  val methodDelete = "DELETE"
-
 }
 
 object NodeTypes extends Enumeration {
   type NodeType = Value
-  val document, folder = Value
+  val Document, Folder = Value
 }

@@ -99,7 +99,7 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi) {
 
   private def getMetadataDefinitions(documentTypeKey: String): Future[Seq[JsValue]] =
     metadataApi
-      .getMetadataDefinitions(documentTypeKey, NodeTypes.document)
+      .getMetadataDefinitions(documentTypeKey, NodeTypes.Document)
       .map(jsValue => (jsValue \\ "metadataFields").toSeq.flatMap(_.as[Seq[JsValue]]))
 
   private def getMetadataDefinition(metadataDefinitions: Seq[JsValue], name: String): JsValue =

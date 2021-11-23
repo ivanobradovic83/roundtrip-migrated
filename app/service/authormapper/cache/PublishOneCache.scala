@@ -34,8 +34,8 @@ class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, meta
       .sequence(
         Seq(
           cacheFirstLevelFolders.map(_ => cacheSecondLevelFolders),
-          cacheValueListMetadata(documentTypeKeyAuthor, NodeTypes.document),
-          cacheValueListMetadata(documentTypeKeyAuthor, NodeTypes.folder)
+          cacheValueListMetadata(documentTypeKeyAuthor, NodeTypes.Document),
+          cacheValueListMetadata(documentTypeKeyAuthor, NodeTypes.Folder)
         ))
   }
 

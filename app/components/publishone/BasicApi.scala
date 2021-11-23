@@ -1,12 +1,13 @@
 package components.publishone
 
+import akka.http.scaladsl.model.HttpMethod
+import akka.http.scaladsl.model.HttpMethods._
 import components.common.ErrorResponseHandler
 import play.api.Logger
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
-import util.PublishOneConstants._
 import util.ConfigUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,7 +26,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
 
   protected def post(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: JsObject): Future[WSResponse] = {
     val wsRequest = (at: String) =>
-      createWsRequest(methodPost, relativeUrl, at)
+      createWsRequest(POST, relativeUrl, at)
         .addHttpHeaders(headers: _*)
         .withBody(requestBody)
     executeRequest(wsRequest)
@@ -38,7 +39,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
 
   protected def put(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: String): Future[WSResponse] = {
     val wsRequest = (at: String) =>
-      createWsRequest(methodPut, relativeUrl, at)
+      createWsRequest(PUT, relativeUrl, at)
         .addHttpHeaders(headers: _*)
         .withBody(requestBody)
     executeRequest(wsRequest)
@@ -50,7 +51,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
   }
 
   protected def get(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty): Future[WSResponse] = {
-    val wsRequest = (at: String) => createWsRequest(methodGet, relativeUrl, at).addHttpHeaders(headers: _*)
+    val wsRequest = (at: String) => createWsRequest(GET, relativeUrl, at).addHttpHeaders(headers: _*)
     executeRequest(wsRequest)
   }
 
@@ -59,7 +60,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
   }
 
   protected def delete(relativeUrl: String): Future[Unit] = {
-    val wsRequest = (at: String) => createWsRequest(methodDelete, relativeUrl, at)
+    val wsRequest = (at: String) => createWsRequest(DELETE, relativeUrl, at)
     executeRequest(wsRequest).map(handleNoContentResponse)
   }
 
@@ -70,12 +71,12 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
     } yield response
   }
 
-  protected def createWsRequest(method: String, relativeUrl: String, accessToken: String): WSRequest = {
+  protected def createWsRequest(httpMethod: HttpMethod, relativeUrl: String, accessToken: String): WSRequest = {
     val url = s"${configUtils.publishOneUrl}/$relativeUrl"
-    log.trace(s"Executing API $method $url")
+    log.trace(s"Executing API $httpMethod $url")
     val wsRequest = wsClient
       .url(url)
-      .withMethod(method)
+      .withMethod(httpMethod.value)
       .addHttpHeaders("Authorization" -> s"Bearer $accessToken")
     if (configUtils.wsClientLogRequestEnabled) wsRequest.withRequestFilter(AhcCurlRequestLogger())
     else wsRequest
