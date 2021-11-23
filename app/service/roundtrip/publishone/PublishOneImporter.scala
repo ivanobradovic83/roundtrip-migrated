@@ -26,11 +26,11 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
 
   private lazy val log = Logger(getClass)
 
-  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte], docJsonMeta: JsValue): Future[ImportedDocumentDto] = {
+  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte], docMetadata: Map[String, String]): Future[ImportedDocumentDto] = {
     log.info(s"${roundTripDto.toString} Import document started")
     for {
       folderId <- createFolder(roundTripDto)
-      docId <- createDocument(roundTripDto, folderId, docJsonMeta)
+      docId <- createDocument(roundTripDto, folderId, docMetadata)
       _ <- setDocumentContent(roundTripDto, docId, content)
       _ <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId imported"))
     } yield ImportedDocumentDto(folderId, roundTripDto.docKey, Seq(docId))
@@ -47,10 +47,10 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
       })
   }
 
-  private def createDocument(roundTripDto: RoundTripDto, folderId: Int, docJsonMeta: JsValue): Future[Int] = {
+  private def createDocument(roundTripDto: RoundTripDto, folderId: Int, docMetadata: Map[String, String]): Future[Int] = {
     log.info(s"${roundTripDto.toString} Create document in folder $folderId started")
     documentApi
-      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter, docJsonMeta)
+      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter, docMetadata)
       .map(response => {
         val docId = (response \ "id").as[Int]
         log.info(s"${roundTripDto.toString} Document $docId created in folder $folderId")

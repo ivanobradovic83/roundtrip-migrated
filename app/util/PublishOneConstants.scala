@@ -12,13 +12,6 @@ object PublishOneConstants {
   val documentTypeCommenter = "/api/documenttypes/commentaar"
   val documentTypeKeyCommenter = "commentaar"
 
-  val listItemsFamilyNamePrefixId = 55
-  val listItemsPrefixId = 53
-  val listItemsGenderId = 56
-  val listItemsRoleId = 65
-  val listItemsPublicationNameId = 67
-  val listItemsPublicationId = 28
-
   val listItemsFamilyNamePrefix = "familyNamePrefix"
   val listItemsPrefix = "prefix"
   val listItemsGender = "gender"
@@ -38,6 +31,7 @@ object PublishOneConstants {
   val apiOpsAssign = s"$apiOps/assign"
   val apiOpsStateChange = s"$apiOps/statechange"
   val apiPublications = s"$apiPrefix/publications"
+  val apiDocumentTypes = s"$apiPrefix/documenttypes"
 
   val methodPost = "POST"
   val methodPut = "PUT"
