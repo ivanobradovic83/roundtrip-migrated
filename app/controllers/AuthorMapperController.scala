@@ -46,7 +46,7 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
   }
 
   private def startMapper(query: String) = {
-    authorMapperService.map(query)
+    authorMapperService.map(query, false)
     val messages = Seq(SucessAlert("Author mapper", "Author mapper started successfully!"))
     Ok(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion, messages))
   }
