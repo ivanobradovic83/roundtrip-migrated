@@ -4,7 +4,7 @@ import components.publishone.NodeApi
 import play.api.Logger
 import play.api.libs.json.{JsNull, JsValue, Json, Reads}
 import service.authormapper.model.{Author, AuthorFolder}
-import util.PublishOneConstants._
+import util.PublishOneUtils._
 import util.StringUtils.notEmpty
 
 import javax.inject.Inject
@@ -82,12 +82,6 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
 
   private def getAuthorFoldersByMetadata(familyName: String, givenName: String): Future[Seq[AuthorFolder]] =
     nodeApi.getNodesByFamilyGivenNameInitials(familyName, givenName, null).map(responseToAuthorFolders)
-
-  private def responseToAuthorFolders(resp: JsValue) =
-    resp.as[Seq[JsValue]].filter(isAuthorFolder).map(Json.fromJson[AuthorFolder](_).get)
-
-  private def isAuthorFolder(node: JsValue) =
-    (node \ "nodeType").as[String] == "folder" && (node \ "documentTypePath").as[String] == documentTypeAuthor
 
   private def getAuthorFolderMetadata(folderId: Int): Future[(String, String, String)] =
     nodeApi.getNodeMetadata(folderId).map(transformToFamilyGivenNameAndInitials)

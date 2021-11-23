@@ -1,11 +1,12 @@
 package service.authormapper.cache
 
 import components.publishone.{MetadataApi, NodeApi}
-import play.api.libs.json.{JsValue, Json, Reads}
+import play.api.libs.json.JsValue
 import service.authormapper.model.AuthorFolder
 import util.NodeTypes.NodeType
-import util.{ConfigUtils, NodeTypes}
 import util.PublishOneConstants._
+import util.PublishOneUtils._
+import util.{ConfigUtils, NodeTypes}
 
 import javax.inject.{Inject, Singleton}
 import scala.collection.concurrent.TrieMap
@@ -22,7 +23,6 @@ import scala.concurrent.Future
 @Singleton
 class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, metadataApi: MetadataApi) {
 
-  private implicit val authorFolderReads: Reads[AuthorFolder] = Json.reads[AuthorFolder]
   private lazy val listItemsToCache =
     Seq(listItemsFamilyNamePrefix, listItemsPrefix, listItemsGender, listItemsRole, listItemsPublicationName, listItemsPublication)
 
@@ -104,11 +104,5 @@ class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, meta
         else Future.successful(folders)
       })
   }
-
-  private def responseToAuthorFolders(resp: JsValue) =
-    resp.as[Seq[JsValue]].filter(isAuthorFolder).map(Json.fromJson[AuthorFolder](_).get)
-
-  private def isAuthorFolder(node: JsValue) =
-    (node \ "nodeType").as[String] == "folder" && (node \ "documentTypePath").as[String] == documentTypeAuthor
 
 }
