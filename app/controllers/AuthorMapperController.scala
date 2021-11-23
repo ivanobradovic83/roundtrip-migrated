@@ -6,6 +6,10 @@ import play.api.{Configuration, Logger}
 import service.authormapper.AuthorMapperService
 import views.alerts.{Alert, Warning, Success => SucessAlert}
 
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.validation.Constraints._
+
 import javax.inject.Inject
 
 /**
@@ -20,24 +24,30 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
   lazy val defaultContentVersion: Int = config.get[Int]("cwc.sws.contentVersion")
   lazy val log: Logger = Logger(getClass)
 
+  val mapAuthorsForm: Form[(String, Boolean)] = Form(
+    tuple(
+      "query" -> text,
+      "createMissingDocuments" -> default(boolean, false)
+    ))
+
   def index: Action[AnyContent] = Action {
     Ok(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion))
   }
 
   def map: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
-    val query = request.body("query").headOption.filter(_.trim.nonEmpty)
+    val (query, createMissingDocuments) = mapAuthorsForm.bindFromRequest().get
     validateQuery(query) match {
       case Some(warning) => badRequestResponse(warning)
-      case None          => startMapper(s"?${query.get}&order=documentFormat")
+      case None          => startMapper(s"?$query&order=documentFormat", createMissingDocuments)
     }
   }
 
-  private def validateQuery(query: Option[String]): Option[Alert] = {
+  private def validateQuery(query: String): Option[Alert] = {
     query match {
-      case None                              => Option(Warning("Query", "Query cannot be empty!"))
-      case Some(q) if q.contains("order=")   => Option(Warning("Query", "Query cannot contain order parameter!"))
-      case Some(q) if q.contains("version=") => Option(Warning("Query", "Query cannot contain version parameter!"))
-      case _                                 => None
+      case ""                          => Option(Warning("Query", "Query cannot be empty!"))
+      case q if q.contains("order=")   => Option(Warning("Query", "Query cannot contain order parameter!"))
+      case q if q.contains("version=") => Option(Warning("Query", "Query cannot contain version parameter!"))
+      case _                           => None
     }
   }
 
@@ -45,8 +55,8 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
     BadRequest(views.html.index(environment, swsBaseUrl, defaultContentVersion, Seq(queryValidation)))
   }
 
-  private def startMapper(query: String) = {
-    authorMapperService.map(query, false)
+  private def startMapper(query: String, createMissingDocuments: Boolean) = {
+    authorMapperService.map(query, createMissingDocuments)
     val messages = Seq(SucessAlert("Author mapper", "Author mapper started successfully!"))
     Ok(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion, messages))
   }
