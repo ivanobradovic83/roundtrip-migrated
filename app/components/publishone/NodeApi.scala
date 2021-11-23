@@ -12,7 +12,7 @@ import scala.concurrent.Future
 class NodeApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
-  def getChildNodes(parentNodeId: Int, pageNumber: Int = 1, pageSize: Int = 10): Future[JsValue] = {
+  def getChildNodes(parentNodeId: Int, pageNumber: Int = 1, pageSize: Int = 100): Future[JsValue] = {
     getJson(s"$apiNodes/$parentNodeId/nodes?pageSize=$pageSize&pageNumber=$pageNumber")
   }
 

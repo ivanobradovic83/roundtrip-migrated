@@ -5,7 +5,6 @@ import play.api.libs.ws.WSClient
 import util.ConfigUtils
 import util.PublishOneConstants._
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.Future
 
@@ -23,17 +22,29 @@ class FolderApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTo
     getJson(s"$apiFolders/$id")
   }
 
-  def createFolder(parentId: Int, name: String, docType: String): Future[JsValue] = {
-    val requestBody = createFolderRequestBody(parentId, name, docType)
+  def createFolder(parentId: Int, name: String, docType: String): Future[JsValue] =
+    createFolder(parentId, name, docType, Map.empty)
+
+  def createFolder(parentId: Int, name: String, docType: String, metadata: Map[String, String]): Future[JsValue] = {
+    val requestBody = createFolderRequestBody(parentId, name, docType, metadata)
     postJson(apiFolders, requestBody)
   }
 
-  private def createFolderRequestBody(parentId: Int, name: String, docType: String) = {
+  private def createFolderRequestBody(parentId: Int, name: String, docType: String, metadata: Map[String, String]) = {
+    val jsonMetadata = metadata.map {
+      case (key, value) =>
+        Json.obj(
+          "name" -> key,
+          "value" -> value,
+          "updateOperation" -> "replace"
+        )
+    }
     Json.obj(
       "parentId" -> parentId,
       "name" -> name,
       "documentTypePath" -> docType,
-      "projectShortTitle" -> name
+      "projectShortTitle" -> name,
+      "metadataFields" -> jsonMetadata
     )
   }
 

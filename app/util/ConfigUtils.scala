@@ -15,6 +15,8 @@ class ConfigUtils @Inject()(config: Configuration) {
   lazy val publishOneClientId: String = config.get[String]("publishOne.clientId")
   lazy val publishOneClientSecret: String = config.get[String]("publishOne.clientSecret")
 
+  lazy val publishOneAuthorsRootFolderId: Int = config.get[Int]("publishOne.authors.rootFolderId")
+
   lazy val checkOperationStateMaxAttempts: Int =
     Try("publishOne.checkOperationState.maxAttempts").map(config.get[Int]).getOrElse(5)
   lazy val checkOperationStateDelay: Long =

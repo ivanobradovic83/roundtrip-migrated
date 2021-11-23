@@ -8,7 +8,8 @@ import com.github.tototoshi.csv.CSVWriter
 import components.publishone.AccessTokenHandler
 import components.sws.{SwsApi, SwsSourceApi}
 import play.api.Logger
-import service.authormapper.model.{Author, AuthorFolder}
+import service.authormapper.cache.PublishOneCache
+import service.authormapper.model.{Author, AuthorFolder, AuthorDocument}
 
 import java.io.{ByteArrayInputStream, PrintWriter, StringWriter}
 import java.nio.file.StandardOpenOption.{APPEND, CREATE, WRITE}
@@ -19,7 +20,10 @@ import scala.concurrent.Future
 class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
                                swsApi: SwsApi,
                                accessTokenHandler: AccessTokenHandler,
-                               authorFolderMapper: AuthorFolderMapper) {
+                               authorFolderMapper: AuthorFolderMapper,
+                               authorFolderCreator: AuthorFolderCreator,
+                               authorDocumentCreator: AuthorDocumentCreator,
+                               publishOneCache: PublishOneCache) {
 
   private lazy val log = Logger(getClass)
   private implicit val system: ActorSystem = ActorSystem("BackpressureBasics")
@@ -29,10 +33,11 @@ class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
     log.info(s"Mapping authors for SWS query $swsQuery ...")
     val file = Paths.get("author-mapping.csv")
     writeCsvHeader(file)
-    for {
-      _ <- accessTokenHandler.accessToken
+    val mapFlow = for {
+      _ <- accessTokenHandler.accessToken zip publishOneCache.initCache
       _ <- map(swsQuery, file)
     } yield true
+    mapFlow.onComplete(_ => publishOneCache.cleanCache())
   }
 
   private def map(swsQuery: String, file: Path) = {
@@ -45,6 +50,8 @@ class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
       .flatMapConcat(Source(_))
       .filter(validNotAlreadyMappedAuthor)
       .mapAsyncUnordered(parallelism)(authorFolderMapper.map)
+//      .mapAsyncUnordered(parallelism)(createAuthorFolderIfMissing)
+//      .mapAsyncUnordered(parallelism)(createAuthorDocumentIfMissing)
       .map(toCsvRow)
       .runWith(FileIO.toPath(file, Set(WRITE, APPEND, CREATE)))
     onFlowComplete(start, flow)
@@ -66,7 +73,24 @@ class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
 
   private def writeCsvHeader(file: Path): Unit = {
     val outWriter = new PrintWriter(file.toFile)
-    outWriter.write(csvRow(Seq("identifier", "name", "familyName", "givenName", "initials", "document identifier", "folder id", "folder title")))
+    outWriter.write(
+      csvRow(
+        Seq(
+          "identifier",
+          "name",
+          "familyName",
+          "givenName",
+          "initials",
+          "familyNamePrefix",
+          "prefix",
+          "gender",
+          "publicationName",
+          "sws document",
+          "folder id",
+          "folder title",
+          "document id",
+          "document title"
+        )))
     outWriter.close()
   }
 
@@ -78,7 +102,8 @@ class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
   private def extractAuthors(docKeyAndContent: (String, Array[Byte])): Seq[Author] = {
     log.info(s"Extracting authors for document ${docKeyAndContent._1} ....")
     val atomXml = xml.XML.load(new ByteArrayInputStream(docKeyAndContent._2))
-    (atomXml \ "creator").map(Author(_, docKeyAndContent._1))
+    val publicationName = (atomXml \ "published" \ "publicationName" \ "identifier").text.toLowerCase
+    (atomXml \ "creator").map(Author(_, publicationName, docKeyAndContent._1))
   }
 
   private def validNotAlreadyMappedAuthor(author: Author): Boolean = {
@@ -95,12 +120,31 @@ class AkkaAuthorMapperExecutor(swsSourceApi: SwsSourceApi,
     }
   }
 
+  private def createAuthorFolderIfMissing(authorAndFolder: (Author, Option[AuthorFolder])): Future[(Author, Option[AuthorFolder])] = {
+    if (authorAndFolder._2.isEmpty)
+      authorFolderCreator
+        .create(authorAndFolder._1)
+        .map(folder => (authorAndFolder._1, Option(folder)))
+    else Future.successful(authorAndFolder)
+  }
+
+  private def createAuthorDocumentIfMissing(
+      authorAndFolder: (Author, Option[AuthorFolder])): Future[(Author, Option[AuthorFolder], Option[AuthorDocument])] = {
+    authorDocumentCreator
+      .create(authorAndFolder._1, authorAndFolder._2.get)
+      .map(document => (authorAndFolder._1, authorAndFolder._2, Option(document)))
+  }
+
+//  private def toCsvRow(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument])) = {
   private def toCsvRow(authorAndFolder: (Author, Option[AuthorFolder])) = {
     authorAndFolder match {
       case (author, folder) =>
+//      case (author, folder, document) =>
         if (folder.isDefined) mappedAuthors.replace(author.identifier, true)
         val authorFields = author.productIterator.toSeq
         val folderFields = folder.map(_.productIterator.toSeq).getOrElse(Seq.empty)
+//        val documentFields = document.map(_.productIterator.toSeq).getOrElse(Seq.empty)
+//        val allFields = Seq(authorFields, folderFields, documentFields).flatten
         val allFields = Seq(authorFields, folderFields).flatten
         ByteString(csvRow(allFields))
     }

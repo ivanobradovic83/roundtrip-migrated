@@ -7,8 +7,25 @@ object PublishOneConstants {
   val documentStateWrite = 177
   val documentStatePublish = 182
 
+  val documentTypeAuthor = "/api/documenttypes/auteursbeschrijvingen"
+  val documentTypeKeyAuthor = "auteursbeschrijvingen"
   val documentTypeCommenter = "/api/documenttypes/commentaar"
-  val documentTypeCommenterId = "commentaar"
+  val documentTypeKeyCommenter = "commentaar"
+
+  val listItemsFamilyNamePrefixId = 55
+  val listItemsPrefixId = 53
+  val listItemsGenderId = 56
+  val listItemsRoleId = 65
+  val listItemsPublicationNameId = 67
+  val listItemsPublicationId = 28
+
+  val listItemsFamilyNamePrefix = "familyNamePrefix"
+  val listItemsPrefix = "prefix"
+  val listItemsGender = "gender"
+  val listItemsRole = "role"
+  val listItemsPublicationName = "publicationName"
+  val listItemsPublication = "publication"
+
   val xsltLocation = "/xslt"
   val xsltRootLocation = "./conf/xslt"
 
@@ -27,4 +44,9 @@ object PublishOneConstants {
   val methodGet = "GET"
   val methodDelete = "DELETE"
 
+}
+
+object NodeTypes extends Enumeration {
+  type NodeType = Value
+  val document, folder = Value
 }

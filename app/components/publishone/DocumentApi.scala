@@ -1,11 +1,10 @@
 package components.publishone
 
 import play.api.libs.json.{JsValue, Json}
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.WSClient
 import util.ConfigUtils
 import util.PublishOneConstants._
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.Future
 
@@ -20,7 +19,17 @@ class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {
 
   def createDocument(parentId: Int, name: String, docType: String, jsonMetadata: JsValue): Future[JsValue] = {
-    val requestBody = createDocumentRequestBody(parentId, name, docType, jsonMetadata)
+    val requestBody = Json.obj(
+      "parentId" -> parentId,
+      "name" -> name,
+      "documentTypePath" -> docType,
+      "metadataFields" -> jsonMetadata
+    )
+    postJson(apiDocuments, requestBody)
+  }
+
+  def createDocument(parentId: Int, name: String, docType: String, metadata: Map[String, String]): Future[JsValue] = {
+    val requestBody = createDocumentRequestBody(parentId, name, docType, metadata)
     postJson(apiDocuments, requestBody)
   }
 
@@ -28,12 +37,15 @@ class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     putXml(s"$apiDocuments/$docId/xml", content)
   }
 
-  private def createDocumentRequestBody(parentId: Int, name: String, docType: String, jsonMetadata: JsValue) = {
-    val editorialDate = Json.obj(
-      "name" -> "editorialDate",
-      "value" -> LocalDate.now(),
-      "updateOperation" -> "replace"
-    )
+  private def createDocumentRequestBody(parentId: Int, name: String, docType: String, metadata: Map[String, String]) = {
+    val jsonMetadata = metadata.map {
+      case (key, value) =>
+        Json.obj(
+          "name" -> key,
+          "value" -> value,
+          "updateOperation" -> "replace"
+        )
+    }
     Json.obj(
       "parentId" -> parentId,
       "name" -> name,
