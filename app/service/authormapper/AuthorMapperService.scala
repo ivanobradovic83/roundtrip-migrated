@@ -8,7 +8,7 @@ import components.publishone.AccessTokenHandler
 import components.sws.{SwsApi, SwsSourceApi}
 import play.api.Logger
 import service.authormapper.cache.PublishOneCache
-import service.authormapper.mapper.{AuthorDocumentCreator, AuthorFolderCreator, AuthorFolderMapper}
+import service.authormapper.mapper.{AuthorDocumentCreator, AuthorDocumentMapper, AuthorFolderCreator, AuthorFolderMapper}
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 
 import java.io.{ByteArrayInputStream, PrintWriter, StringWriter}
@@ -36,6 +36,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
                                     accessTokenHandler: AccessTokenHandler,
                                     authorFolderMapper: AuthorFolderMapper,
                                     authorFolderCreator: AuthorFolderCreator,
+                                    authorDocumentMapper: AuthorDocumentMapper,
                                     authorDocumentCreator: AuthorDocumentCreator,
                                     publishOneCache: PublishOneCache) {
 
@@ -65,6 +66,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
       .flatMapConcat(Source(_))
       .filter(validNotAlreadyMappedAuthor)
       .mapAsyncUnordered(parallelism)(authorFolderMapper.map)
+      .mapAsyncUnordered(parallelism)(mapAuthorDocument)
       .mapAsyncUnordered(parallelism)(createAuthorFolderIfMissing(_, createMissingDocuments))
       .mapAsyncUnordered(parallelism)(createAuthorDocumentIfMissing(_, createMissingDocuments))
       .map(toCsvRow)
@@ -133,17 +135,22 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     }
   }
 
-  private def createAuthorFolderIfMissing(authorAndFolder: (Author, Option[AuthorFolder]),
-                                          createMissingDocuments: Boolean): Future[(Author, Option[AuthorFolder])] = {
+  private def mapAuthorDocument(authorAndFolder: (Author, Option[AuthorFolder])) = {
+    if (authorAndFolder._2.nonEmpty) authorDocumentMapper.map(authorAndFolder._1, authorAndFolder._2.get).map((authorAndFolder._1, authorAndFolder._2, _))
+    else Future.successful((authorAndFolder._1, authorAndFolder._2, Option.empty[AuthorDocument]))
+  }
+
+  private def createAuthorFolderIfMissing(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument]),
+                                          createMissingDocuments: Boolean) = {
     if (createMissingDocuments && authorAndFolder._2.isEmpty)
       authorFolderCreator
         .create(authorAndFolder._1)
-        .map(folder => (authorAndFolder._1, Option(folder)))
+        .map(folder => (authorAndFolder._1, Option(folder), Option.empty))
     else Future.successful(authorAndFolder)
   }
 
-  private def createAuthorDocumentIfMissing(authorAndFolder: (Author, Option[AuthorFolder]),
-                                            createMissingDocuments: Boolean): Future[(Author, Option[AuthorFolder], Option[AuthorDocument])] = {
+  private def createAuthorDocumentIfMissing(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument]),
+                                            createMissingDocuments: Boolean) = {
     if (createMissingDocuments) {
       authorDocumentCreator
         .create(authorAndFolder._1, authorAndFolder._2.get)

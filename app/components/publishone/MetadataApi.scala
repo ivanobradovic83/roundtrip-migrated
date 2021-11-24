@@ -27,4 +27,8 @@ class MetadataApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     getJson(valueListPath)
   }
 
+  def getDocumentMetadata(docId: Int): Future[JsValue] = {
+    getJson(s"api/nodes/$docId/metadata")
+  }
+
 }

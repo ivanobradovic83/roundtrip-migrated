@@ -54,8 +54,6 @@ class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, meta
       }
   }
 
-  private def getMetadataFields(resp: JsValue) = (resp \\ "metadataFields").toSeq.flatMap(_.as[Seq[JsValue]])
-
   private def shouldValueListMetadataFieldBeCached(metadataFieldDefinition: JsValue) =
     listItemsToCache.contains((metadataFieldDefinition \ "name").as[String])
 
