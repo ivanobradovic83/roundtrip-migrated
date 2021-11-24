@@ -4,6 +4,7 @@ import components.publishone.DocumentApi
 import service.authormapper.cache.PublishOneCache
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import util.PublishOneConstants._
+import util.PublishOneUtils.docTypePath
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,7 +22,7 @@ class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, publishOneCache:
     val documentName = s"${folder.title} (Commentaren)"
     val metadata = buildDocumentMetadata(author)
     documentApi
-      .createDocument(folder.id, documentName, documentTypeAuthor, metadata)
+      .createDocument(folder.id, documentName, docTypePath(documentTypeAuthor), metadata)
       .map { resp =>
         val id = (resp \ "id").as[Int]
         val name = (resp \ "title").as[String]

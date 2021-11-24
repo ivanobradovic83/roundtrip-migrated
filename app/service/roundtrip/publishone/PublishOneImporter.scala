@@ -3,8 +3,8 @@ package service.roundtrip.publishone
 import components.publishone.{DocumentApi, FolderApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
-import play.api.libs.json.JsValue
 import util.PublishOneConstants._
+import util.PublishOneUtils.docTypePath
 
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
@@ -39,7 +39,7 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
   private def createFolder(roundTripDto: RoundTripDto): Future[Int] = {
     log.info(s"${roundTripDto.toString} Create folder started")
     folderApi
-      .createFolder(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter)
+      .createFolder(roundTripDto.destination.toInt, roundTripDto.docKey, docTypePath(documentTypeCommenter))
       .map(response => {
         val id = (response \ "id").as[Int]
         log.info(s"${roundTripDto.toString} Folder $id created")
@@ -50,7 +50,7 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
   private def createDocument(roundTripDto: RoundTripDto, folderId: Int, docMetadata: Map[String, String]): Future[Int] = {
     log.info(s"${roundTripDto.toString} Create document in folder $folderId started")
     documentApi
-      .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter, docMetadata)
+      .createDocument(folderId, roundTripDto.docKey, docTypePath(documentTypeCommenter), docMetadata)
       .map(response => {
         val docId = (response \ "id").as[Int]
         log.info(s"${roundTripDto.toString} Document $docId created in folder $folderId")

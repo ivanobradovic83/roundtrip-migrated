@@ -12,6 +12,8 @@ object PublishOneUtils {
     resp.as[Seq[JsValue]].filter(isAuthorFolder).map(Json.fromJson[AuthorFolder](_).get)
 
   def isAuthorFolder(node: JsValue): Boolean =
-    (node \ "nodeType").as[String] == "folder" && (node \ "documentTypePath").as[String] == documentTypeAuthor
+    (node \ "nodeType").as[String] == "folder" && (node \ "documentTypePath").as[String] == docTypePath(documentTypeAuthor)
+
+  def docTypePath(docTypeKey: String) = s"$documentTypePathPrefix/$docTypeKey"
 
 }

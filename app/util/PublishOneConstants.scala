@@ -7,11 +7,9 @@ object PublishOneConstants {
   val documentStateWrite = 177
   val documentStatePublish = 182
 
-  val documentTypeKeyAuthor = "auteursbeschrijvingen"
-  val documentTypeKeyCommenter = "commentaar"
-  val documentTypeApiPrefix = "/api/documenttypes"
-  val documentTypeAuthor = s"$documentTypeApiPrefix/$documentTypeKeyAuthor"
-  val documentTypeCommenter = s"$documentTypeApiPrefix/$documentTypeKeyCommenter"
+  val documentTypeAuthor = "auteursbeschrijvingen"
+  val documentTypeCommenter = "commentaar"
+  val documentTypePathPrefix = "/api/documenttypes"
 
   val listItemsFamilyNamePrefix = "familyNamePrefix"
   val listItemsPrefix = "prefix"
