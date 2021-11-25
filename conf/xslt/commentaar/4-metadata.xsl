@@ -635,7 +635,7 @@
     <xsl:template match="metadata">
         <meta>
             <xsl:choose>
-                <xsl:when test="creator[role='auteur'] and source='publishone'">
+                <xsl:when test="creator[role='auteur']">
                     <dc-creator>
                         <xsl:for-each select="creator">
                             <item key="{identifier}">
