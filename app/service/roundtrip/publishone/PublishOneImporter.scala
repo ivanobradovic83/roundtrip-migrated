@@ -3,7 +3,7 @@ package service.roundtrip.publishone
 import components.publishone.{DocumentApi, FolderApi, LinkApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
-import service.authormapper.model.AuthorDocument
+import service.roundtrip.model.AuthorDocument
 import util.PublishOneConstants._
 import util.StringUtils.notEmpty
 

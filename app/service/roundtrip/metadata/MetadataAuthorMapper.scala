@@ -1,7 +1,7 @@
 package service.roundtrip.metadata
 
 import com.github.tototoshi.csv.CSVReader
-import service.authormapper.model.AuthorDocument
+import service.roundtrip.model.AuthorDocument
 import util.StringUtils.notEmpty
 
 import javax.inject.Inject
@@ -28,7 +28,7 @@ class MetadataAuthorMapper @Inject()() {
       val swsAuthorId = row(swsAuthorIdIndex)
       val p1AuthorDocId = row(p1AuthorDocIdIndex)
       val p1AuthorDocName = row(p1AuthorDocNameIndex)
-      val p1AuthorListItemId = row(p1AuthorListItemIdIndex)
+      val p1AuthorListItemId = if (row.size > p1AuthorListItemIdIndex) row(p1AuthorListItemIdIndex) else ""
       if (notEmpty(p1AuthorDocId) && notEmpty(p1AuthorDocName))
         authorDocumentMappingCache.put(swsAuthorId, AuthorDocument(p1AuthorDocId.toInt, p1AuthorDocName, p1AuthorListItemId))
     }

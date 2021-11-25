@@ -6,7 +6,7 @@ import play.api.Logger
 import util.NodeTypes
 import util.PublishOneConstants._
 import play.api.libs.json._
-import service.authormapper.model.AuthorDocument
+import service.roundtrip.model.AuthorDocument
 
 import java.io.ByteArrayInputStream
 import javax.inject.Inject

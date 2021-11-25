@@ -40,6 +40,8 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
                                     authorDocumentCreator: AuthorDocumentCreator,
                                     publishOneCache: PublishOneCache) {
 
+  type AuthorFolderDoc = (Author, Option[AuthorFolder], Option[AuthorDocument])
+
   private lazy val log = Logger(getClass)
   private implicit val system: ActorSystem = ActorSystem("BackpressureBasics")
   private val mappedAuthors = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
@@ -59,16 +61,23 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
 
   private def runMappingFlow(swsQuery: String, createMissingDocuments: Boolean, file: Path) = {
     val parallelism = 4
-    swsSourceApi
+    var flow = swsSourceApi
       .searchAndStreamDocs(swsQuery)
       .mapAsyncUnordered(parallelism)(fetchDocument)
       .map(extractAuthors)
       .flatMapConcat(Source(_))
       .filter(validNotAlreadyMappedAuthor)
+      .async
       .mapAsyncUnordered(parallelism)(authorFolderMapper.map)
       .mapAsyncUnordered(parallelism)(mapAuthorDocument)
-      .mapAsyncUnordered(parallelism)(createAuthorFolderIfMissing(_, createMissingDocuments))
-      .mapAsyncUnordered(parallelism)(createAuthorDocumentIfMissing(_, createMissingDocuments))
+      .async
+    if (createMissingDocuments) {
+      flow = flow
+        .mapAsyncUnordered(parallelism)(createAuthorFolderIfMissing)
+        .mapAsyncUnordered(parallelism)(createAuthorDocumentIfMissing)
+        .async
+    }
+    flow
       .map(toCsvRow)
       .runWith(FileIO.toPath(file, Set(WRITE, APPEND, CREATE)))
   }
@@ -136,29 +145,28 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
   }
 
   private def mapAuthorDocument(authorAndFolder: (Author, Option[AuthorFolder])) = {
-    if (authorAndFolder._2.nonEmpty) authorDocumentMapper.map(authorAndFolder._1, authorAndFolder._2.get).map((authorAndFolder._1, authorAndFolder._2, _))
+    if (authorAndFolder._2.nonEmpty)
+      authorDocumentMapper.map(authorAndFolder._1, authorAndFolder._2.get).map((authorAndFolder._1, authorAndFolder._2, _))
     else Future.successful((authorAndFolder._1, authorAndFolder._2, Option.empty[AuthorDocument]))
   }
 
-  private def createAuthorFolderIfMissing(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument]),
-                                          createMissingDocuments: Boolean) = {
-    if (createMissingDocuments && authorAndFolder._2.isEmpty)
-      authorFolderCreator
-        .create(authorAndFolder._1)
-        .map(folder => (authorAndFolder._1, Option(folder), Option.empty))
-    else Future.successful(authorAndFolder)
+  private def createAuthorFolderIfMissing(authorFolderDoc: AuthorFolderDoc): Future[AuthorFolderDoc] = {
+    authorFolderDoc match {
+      case (author, folder, document) if folder.isEmpty =>
+        authorFolderCreator.create(author).map(newFolder => (author, Some(newFolder), document))
+      case _ => Future.successful(authorFolderDoc)
+    }
   }
 
-  private def createAuthorDocumentIfMissing(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument]),
-                                            createMissingDocuments: Boolean) = {
-    if (createMissingDocuments) {
-      authorDocumentCreator
-        .create(authorAndFolder._1, authorAndFolder._2.get)
-        .map(document => (authorAndFolder._1, authorAndFolder._2, Option(document)))
-    } else Future.successful((authorAndFolder._1, authorAndFolder._2, Option.empty[AuthorDocument]))
+  private def createAuthorDocumentIfMissing(authorFolderDoc: AuthorFolderDoc): Future[AuthorFolderDoc] = {
+    authorFolderDoc match {
+      case (author, folder, document) if document.isEmpty =>
+        authorDocumentCreator.create(author, folder.get).map(newDocument => (author, folder, Option(newDocument)))
+      case _ => Future.successful(authorFolderDoc)
+    }
   }
 
-  private def toCsvRow(authorAndFolder: (Author, Option[AuthorFolder], Option[AuthorDocument])) = {
+  private def toCsvRow(authorAndFolder: AuthorFolderDoc) = {
     authorAndFolder match {
       case (author, folder, document) =>
         if (folder.isDefined) mappedAuthors.replace(author.identifier, true)
