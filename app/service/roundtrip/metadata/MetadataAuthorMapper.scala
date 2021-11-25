@@ -1,7 +1,7 @@
 package service.roundtrip.metadata
 
 import com.github.tototoshi.csv.CSVReader
-import service.roundtrip.model.AuthorDocument
+import service.roundtrip.model.AuthorDocumentMapping
 import util.StringUtils.notEmpty
 
 import javax.inject.Inject
@@ -16,10 +16,10 @@ class MetadataAuthorMapper @Inject()() {
   private lazy val swsAuthorIdIndex: Int = 0
   private lazy val p1AuthorDocIdIndex: Int = 12
   private lazy val p1AuthorDocNameIndex: Int = 13
-  private lazy val p1AuthorListItemIdIndex: Int = 14
-  private lazy val authorDocumentMappingCache: TrieMap[String, AuthorDocument] = new TrieMap[String, AuthorDocument]()
+  private lazy val p1AuthorItemIdIndex: Int = 14
+  private lazy val authorDocumentMappingCache: TrieMap[String, AuthorDocumentMapping] = new TrieMap[String, AuthorDocumentMapping]()
 
-  def mapAuthorToDocument(swsAuthorId: String): Option[AuthorDocument] = authorDocumentMappingCache.get(swsAuthorId)
+  def mapAuthorToDocument(swsAuthorId: String): Option[AuthorDocumentMapping] = authorDocumentMappingCache.get(swsAuthorId)
 
   def initCache(): Unit = {
     cleanCache()
@@ -28,9 +28,9 @@ class MetadataAuthorMapper @Inject()() {
       val swsAuthorId = row(swsAuthorIdIndex)
       val p1AuthorDocId = row(p1AuthorDocIdIndex)
       val p1AuthorDocName = row(p1AuthorDocNameIndex)
-      val p1AuthorListItemId = if (row.size > p1AuthorListItemIdIndex) row(p1AuthorListItemIdIndex) else ""
+      val p1AuthorItemId = if (row.size > p1AuthorItemIdIndex) row(p1AuthorItemIdIndex) else ""
       if (notEmpty(p1AuthorDocId) && notEmpty(p1AuthorDocName))
-        authorDocumentMappingCache.put(swsAuthorId, AuthorDocument(p1AuthorDocId.toInt, p1AuthorDocName, p1AuthorListItemId))
+        authorDocumentMappingCache.put(swsAuthorId, AuthorDocumentMapping(p1AuthorDocId.toInt, p1AuthorDocName, p1AuthorItemId))
     }
   }
 

@@ -6,7 +6,7 @@ import play.api.Logger
 import util.NodeTypes
 import util.PublishOneConstants._
 import play.api.libs.json._
-import service.roundtrip.model.AuthorDocument
+import service.roundtrip.model.AuthorDocumentMapping
 
 import java.io.ByteArrayInputStream
 import javax.inject.Inject
@@ -78,7 +78,7 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: M
     getAndMapValueListItemKeysToIds(metadataDef, false, itemKeys: _*)
   }
 
-  private def handleAuthors(metadataXmlChild: Node): Future[Seq[AuthorDocument]] = {
+  private def handleAuthors(metadataXmlChild: Node): Future[Seq[AuthorDocumentMapping]] = {
     val swsAuthorIds = (metadataXmlChild \\ "item")
       .flatMap(itemNode => itemNode.attribute("key"))
       .map(keyNode => keyNode.text)

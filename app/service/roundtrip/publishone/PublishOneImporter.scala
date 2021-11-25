@@ -3,7 +3,7 @@ package service.roundtrip.publishone
 import components.publishone.{DocumentApi, FolderApi, LinkApi, NodeOperationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
-import service.roundtrip.model.AuthorDocument
+import service.roundtrip.model.AuthorDocumentMapping
 import util.PublishOneConstants._
 import util.StringUtils.notEmpty
 
@@ -66,8 +66,8 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
     val docMetadataString = new mutable.HashMap[String, String]()
     docMetadata.collect { case (key, value: String) => docMetadataString += (key -> value) }
     val authorListItemIds = getAuthorDocuments(docMetadata)
-      .filter(authorDoc => notEmpty(authorDoc.listItemId))
-      .map(_.listItemId)
+      .filter(authorDoc => notEmpty(authorDoc.authorItemId))
+      .map(_.authorItemId)
       .mkString(",")
     if (notEmpty(authorListItemIds)) docMetadataString += (listItemsAuthor -> s"[$authorListItemIds]")
     docMetadataString.toMap
@@ -86,14 +86,10 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
     Future.sequence(getAuthorDocuments(docMetadata).map(createAuthorLinks(roundTripDto, folderId, _)))
   }
 
-  private def getAuthorDocuments(docMetadata: Map[String, AnyRef]) = {
-    docMetadata
-      .get(listItemsAuthor)
-      .map { case value: Seq[AuthorDocument] => value }
-      .getOrElse(Seq.empty)
-  }
+  private def getAuthorDocuments(docMetadata: Map[String, AnyRef]): Seq[AuthorDocumentMapping] =
+    docMetadata.get(listItemsAuthor).map(_.asInstanceOf[Seq[AuthorDocumentMapping]]).getOrElse(Seq.empty)
 
-  private def createAuthorLinks(roundTripDto: RoundTripDto, folderId: Int, authorDoc: AuthorDocument) = {
+  private def createAuthorLinks(roundTripDto: RoundTripDto, folderId: Int, authorDoc: AuthorDocumentMapping) = {
     val logPrefix: String = s"${roundTripDto.toString} ${authorDoc.toString}"
     log.info(s"$logPrefix Creating link to author document in folder $folderId started")
     for {
