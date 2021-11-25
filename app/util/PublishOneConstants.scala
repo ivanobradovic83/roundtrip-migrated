@@ -17,6 +17,7 @@ object PublishOneConstants {
   val listItemsRole = "role"
   val listItemsPublicationName = "publicationName"
   val listItemsPublication = "publication"
+  val listItemsAuthor = "dc-creator"
 
   val xsltLocation = "/xslt"
   val xsltRootLocation = "./conf/xslt"
@@ -31,6 +32,7 @@ object PublishOneConstants {
   val apiOpsStateChange = s"$apiOps/statechange"
   val apiPublications = s"$apiPrefix/publications"
   val apiDocumentTypes = s"$apiPrefix/documenttypes"
+  val apiLinks = s"$apiPrefix/links"
 
 }
 

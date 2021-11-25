@@ -4,6 +4,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import util.ConfigUtils
 import util.PublishOneConstants._
+import util.PublishOneUtils.docTypePath
 
 import javax.inject.Inject
 import scala.concurrent.Future
@@ -39,7 +40,7 @@ class DocumentApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
     Json.obj(
       "parentId" -> parentId,
       "name" -> name,
-      "documentTypePath" -> docType,
+      "documentTypePath" -> docTypePath(docType),
       "metadataFields" -> jsonMetadata
     )
   }

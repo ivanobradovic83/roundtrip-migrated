@@ -4,7 +4,6 @@ import components.publishone.FolderApi
 import service.authormapper.cache.PublishOneCache
 import service.authormapper.model.{Author, AuthorFolder}
 import util.PublishOneConstants._
-import util.PublishOneUtils.docTypePath
 import util.StringUtils._
 
 import javax.inject.Inject
@@ -39,7 +38,7 @@ class AuthorFolderCreator @Inject()(folderApi: FolderApi, publishOneCache: Publi
     if (oneLettersFolderId.isEmpty) throw new RuntimeException(s"There is no author folder $oneLettersFolderName")
     else
       folderApi
-        .createFolder(oneLettersFolderId.get, twoLettersFolderName.capitalize, docTypePath(documentTypeAuthor))
+        .createFolder(oneLettersFolderId.get, twoLettersFolderName.capitalize, documentTypeAuthor)
         .map(response => (response \ "id").as[Int])
   }
 
@@ -47,7 +46,7 @@ class AuthorFolderCreator @Inject()(folderApi: FolderApi, publishOneCache: Publi
     val folderName = buildFolderName(author)
     val metadata = buildFolderMetadata(author)
     folderApi
-      .createFolder(parentFolderId, folderName, docTypePath(documentTypeAuthor), metadata)
+      .createFolder(parentFolderId, folderName, documentTypeAuthor, metadata)
       .map { resp =>
         val id = (resp \ "id").as[Int]
         val name = (resp \ "name").as[String]

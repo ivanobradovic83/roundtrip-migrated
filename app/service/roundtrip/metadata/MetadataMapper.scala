@@ -4,7 +4,9 @@ import components.publishone.MetadataApi
 import dto.RoundTripDto
 import play.api.Logger
 import util.NodeTypes
+import util.PublishOneConstants._
 import play.api.libs.json._
+import service.authormapper.model.AuthorDocument
 
 import java.io.ByteArrayInputStream
 import javax.inject.Inject
@@ -24,11 +26,11 @@ import scala.xml.Node
   *
   * @param metadataApi PublishOne Metadata API
   */
-class MetadataMapper @Inject()(metadataApi: MetadataApi) {
+class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: MetadataAuthorMapper) {
 
   private lazy val log = Logger(getClass)
 
-  def mapXmlMetadata(roundTripDto: RoundTripDto, metadataXml: Array[Byte]): Future[Map[String, String]] = {
+  def mapXmlMetadata(roundTripDto: RoundTripDto, metadataXml: Array[Byte]): Future[Map[String, AnyRef]] = {
     log.info(s"${roundTripDto.toString} Map XML metadata to Json started")
     for {
       metadataDefs <- getMetadataDefinitions(roundTripDto.docType)
@@ -37,30 +39,31 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi) {
     } yield metadataJson
   }
 
-  private def mapXmlToJsonMetadata(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Map[String, String]] =
+  private def mapXmlToJsonMetadata(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Map[String, AnyRef]] =
     getJsonMetadataValues(metadataXml, metadataDefs)
       .map(filterNonEmpty)
       .map(_.toMap)
 
-  private def getJsonMetadataValues(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, String)]] = {
+  private def getJsonMetadataValues(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, AnyRef)]] = {
     val metadataXmlChildren = xml.XML.load(new ByteArrayInputStream(metadataXml)).child
     val getJsonMetadataValueFutures = metadataXmlChildren.map(getJsonMetadataValue(metadataDefs, _))
     Future.sequence(getJsonMetadataValueFutures)
   }
 
-  private def getJsonMetadataValue(metadataDefs: Seq[JsValue], metadataXmlChild: Node): Future[(String, String)] = {
+  private def getJsonMetadataValue(metadataDefs: Seq[JsValue], metadataXmlChild: Node): Future[(String, AnyRef)] = {
     val metadataName = metadataXmlChild.label
     val metadataDef = getMetadataDefinition(metadataDefs, metadataName)
-    val getMetadataValue: Future[String] = getMetadataType(metadataDef) match {
-      case "selectList" if isMultiSelectList(metadataDef) => handleMultiSelectList(metadataXmlChild, metadataDef)
-      case "selectList"                                   => handleSingleSelectList(metadataXmlChild, metadataDef)
-      case "multipleStringValue"                          => handleMultipleStringValue(metadataXmlChild)
-      case _                                              => Future.successful(metadataXmlChild.text)
+    val getMetadataValue: Future[AnyRef] = getMetadataType(metadataDef) match {
+      case "selectList" if metadataName == listItemsAuthor => handleAuthors(metadataXmlChild)
+      case "selectList" if isMultiSelectList(metadataDef)  => handleMultiSelectList(metadataXmlChild, metadataDef)
+      case "selectList"                                    => handleSingleSelectList(metadataXmlChild, metadataDef)
+      case "multipleStringValue"                           => handleMultipleStringValue(metadataXmlChild)
+      case _                                               => Future.successful(metadataXmlChild.text)
     }
     getMetadataValue.map((metadataName, _))
   }
 
-  private def filterNonEmpty(jsonMetadataValues: Seq[(String, String)]): Seq[(String, String)] =
+  private def filterNonEmpty(jsonMetadataValues: Seq[(String, AnyRef)]): Seq[(String, AnyRef)] =
     jsonMetadataValues.filter(_._2 != null)
 
   private def handleSingleSelectList(metadataXmlChild: Node, metadataDef: JsValue): Future[String] = {
@@ -73,6 +76,18 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi) {
       .flatMap(itemNode => itemNode.attribute("key"))
       .map(keyNode => keyNode.text)
     getAndMapValueListItemKeysToIds(metadataDef, false, itemKeys: _*)
+  }
+
+  private def handleAuthors(metadataXmlChild: Node): Future[Seq[AuthorDocument]] = {
+    val swsAuthorIds = (metadataXmlChild \\ "item")
+      .flatMap(itemNode => itemNode.attribute("key"))
+      .map(keyNode => keyNode.text)
+    metadataAuthorMapper.initCache()
+    val authorDocs = swsAuthorIds
+      .map(metadataAuthorMapper.mapAuthorToDocument)
+      .filter(_.isDefined)
+      .flatten
+    Future.successful(authorDocs)
   }
 
   private def getAndMapValueListItemKeysToIds(metadataDef: JsValue, singleSelect: Boolean, itemKeys: String*): Future[String] = {

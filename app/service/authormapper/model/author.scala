@@ -2,7 +2,7 @@ package service.authormapper.model
 
 case class AuthorFolder(id: Int, title: String)
 
-case class AuthorDocument(id: Int, title: String)
+case class AuthorDocument(id: Int, title: String, listItemId: String = null)
 
 case class Author(identifier: String,
                   name: String,
