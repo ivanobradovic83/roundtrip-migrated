@@ -14,6 +14,7 @@ import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import java.io.{ByteArrayInputStream, PrintWriter, StringWriter}
 import java.nio.file.StandardOpenOption.{APPEND, CREATE, WRITE}
 import java.nio.file.{Path, Paths}
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import javax.inject.Inject
@@ -44,7 +45,9 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
 
   private lazy val log = Logger(getClass)
   private implicit val system: ActorSystem = ActorSystem("BackpressureBasics")
-  private val mappedAuthors = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
+  private val mappedAuthorsCache = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
+  private val mappedFoldersCounter = new AtomicInteger(0)
+  private val mappedDocumentsCounter = new AtomicInteger(0)
 
   def map(swsQuery: String, createMissingDocuments: Boolean): Unit = {
     log.info(s"Mapping authors for SWS query $swsQuery ...")
@@ -84,14 +87,15 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
 
   private def mappingFlowComplete(start: Long): Unit = {
     val duration = (System.currentTimeMillis() - start) / 1000
-    val mappedAuthorsCount = mappedAuthors.values().stream().filter(_ == true).count()
-    val nonMappedAuthorsCount = mappedAuthors.size() - mappedAuthorsCount
+    val nonMappedAuthorsCount = mappedAuthorsCache.size() - mappedFoldersCounter.get
     log.info(
       s"Mapping authors for SWS query done in $duration s" +
-        s"\nTotal authors processed: ${mappedAuthors.size}" +
-        s"\nMapped authors count: $mappedAuthorsCount" +
+        s"\nTotal authors processed: ${mappedAuthorsCache.size}" +
+        s"\nMapped author folders/documents count: $mappedFoldersCounter / $mappedDocumentsCounter" +
         s"\nNon mapped authors count: $nonMappedAuthorsCount")
-    mappedAuthors.clear()
+    mappedAuthorsCache.clear()
+    mappedFoldersCounter.set(0)
+    mappedDocumentsCounter.set(0)
     publishOneCache.cleanCache()
   }
 
@@ -134,9 +138,9 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     if ("" == author.familyName) {
       log.warn(s"invalid author $author")
       false
-    } else if (!mappedAuthors.containsKey(author.identifier)) {
+    } else if (!mappedAuthorsCache.containsKey(author.identifier)) {
       log.info(s"$author not mapped yet")
-      mappedAuthors.put(author.identifier, false)
+      mappedAuthorsCache.put(author.identifier, false)
       true
     } else {
       log.info(s"$author already mapped")
@@ -169,7 +173,8 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
   private def toCsvRow(authorAndFolder: AuthorFolderDoc) = {
     authorAndFolder match {
       case (author, folder, document) =>
-        if (folder.isDefined) mappedAuthors.replace(author.identifier, true)
+        if (folder.isDefined) mappedFoldersCounter.addAndGet(1)
+        if (document.isDefined) mappedDocumentsCounter.addAndGet(1)
         val authorFields = author.productIterator.toSeq
         val folderFields = folder.map(_.productIterator.toSeq).getOrElse(Seq.empty)
         val documentFields = document.map(_.productIterator.toSeq).getOrElse(Seq.empty)

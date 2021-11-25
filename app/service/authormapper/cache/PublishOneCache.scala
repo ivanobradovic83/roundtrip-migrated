@@ -33,7 +33,7 @@ class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, meta
     Future
       .sequence(
         Seq(
-          cacheFirstLevelFolders.map(_ => cacheSecondLevelFolders),
+          cacheRootFolders,
           cacheValueListMetadata(documentTypeAuthor, NodeTypes.Document),
           cacheValueListMetadata(documentTypeAuthor, NodeTypes.Folder)
         ))
@@ -84,6 +84,10 @@ class PublishOneCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi, meta
   }
 
   private def mapByName(valueListName: String) = valueListName == listItemsFamilyNamePrefix || valueListName == listItemsPrefix
+
+  private def cacheRootFolders =
+    if (configUtils.publishOneAuthorsRootFolderId != -1) cacheFirstLevelFolders.map(_ => cacheSecondLevelFolders)
+    else Future.successful()
 
   private def cacheFirstLevelFolders = cacheFolders(configUtils.publishOneAuthorsRootFolderId)
 
