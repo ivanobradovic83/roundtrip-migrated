@@ -6,7 +6,6 @@ import PublishOneConstants._
 
 object PublishOneUtils {
 
-  private lazy implicit val authorFolderReads: Reads[AuthorFolder] = Json.reads[AuthorFolder]
   private lazy implicit val authorDocumentReads: Reads[AuthorDocument] = Json.reads[AuthorDocument]
 
   def responseToAuthorFolders(resp: JsValue): Seq[AuthorFolder] =

@@ -116,6 +116,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
           "sws document",
           "folder id",
           "folder title",
+          "author item id",
           "document id",
           "document title"
         )))
