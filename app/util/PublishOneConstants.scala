@@ -2,6 +2,8 @@ package util
 
 object PublishOneConstants {
 
+  val publicationProfileOnlineZip = "14-publishone-customxml-87"
+
   val authorRoleId = "0628f370-937c-45d7-a2fd-08dc88c325fd"
   val documentStateCreated = 176
   val documentStateWrite = 177

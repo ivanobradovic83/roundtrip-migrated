@@ -4,7 +4,7 @@ import components.publishone.{NodeOperationApi, PublicationApi}
 import dto.{ImportedDocumentDto, RoundTripDto}
 import play.api.Logger
 import play.api.libs.ws.WSResponse
-import util.PublishOneConstants.{documentStateCreated, documentStatePublish}
+import util.PublishOneConstants.{documentStateCreated, documentStatePublish, publicationProfileOnlineZip}
 
 import java.io.File
 import javax.inject.Inject
@@ -27,7 +27,6 @@ import scala.concurrent.Future
   */
 class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
 
-  private lazy val publicationProfileSduV3Zip = "14-publishone-customxml-16"
   private lazy val log = Logger(getClass)
   private lazy val contentDispositionDocumentNamePattern = ".*filename=(.*?);.*".r
 
@@ -67,7 +66,7 @@ class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi:
   private def createPublication(logPrefix: String, importedDocDto: ImportedDocumentDto) = {
     log.info(s"$logPrefix Creating publication started")
     for {
-      (ticket, resultId) <- publicationApi.createPublication(publicationProfileSduV3Zip, importedDocDto.folderId, importedDocDto.folderName)
+      (ticket, resultId) <- publicationApi.createPublication(publicationProfileOnlineZip, importedDocDto.folderId, importedDocDto.folderName)
       _ <- Future.successful(log.info(s"$logPrefix Publication created"))
     } yield (ticket, resultId)
   }
@@ -75,7 +74,7 @@ class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi:
   private def getFinishedPublicationFile(logPrefix: String, ticket: String, resultId: String) = {
     log.info(s"$logPrefix Getting publication file started")
     for {
-      response <- publicationApi.getFinishedPublicationFile(publicationProfileSduV3Zip, ticket, resultId)
+      response <- publicationApi.getFinishedPublicationFile(publicationProfileOnlineZip, ticket, resultId)
       _ <- Future.successful(log.info(s"$logPrefix Publication file retrieved"))
     } yield response
   }
@@ -93,7 +92,7 @@ class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi:
   }
 
   private def deletePublicationIfFIleTransferred(logPrefix: String, fileTransferStatus: Boolean, ticket: String): Future[Unit] = {
-    val deletePublicationLogPrefix = s"$logPrefix Delete publication $publicationProfileSduV3Zip/$ticket"
+    val deletePublicationLogPrefix = s"$logPrefix Delete publication $publicationProfileOnlineZip/$ticket"
     if (fileTransferStatus) deletePublication(deletePublicationLogPrefix, ticket)
     else deletePublicationWarning(deletePublicationLogPrefix)
   }
@@ -101,7 +100,7 @@ class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi:
   private def deletePublication(deletePublicationLogPrefix: String, ticket: String) = {
     log.info(s"$deletePublicationLogPrefix started")
     publicationApi
-      .deletePublication(publicationProfileSduV3Zip, ticket)
+      .deletePublication(publicationProfileOnlineZip, ticket)
       .map(_ => log.info(s"$deletePublicationLogPrefix done"))
   }
 
