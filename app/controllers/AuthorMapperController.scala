@@ -36,19 +36,19 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
 
   def map: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
     val (query, createMissingDocuments) = mapAuthorsForm.bindFromRequest().get
-    if(authorMapperService.getIsMappingInProgress)
-      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"), "mapAuthors")
+    if (authorMapperService.getIsMappingInProgress)
+      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"))
     else
       validateQuery(query) match {
-        case Some(warning) => badRequestResponse(warning, "mapAuthors")
+        case Some(warning) => badRequestResponse(warning)
         case None          => startMapper(s"?$query&order=documentFormat", createMissingDocuments)
       }
 
   }
 
   def downloadMapping: Action[AnyContent] = Action {
-    if(authorMapperService.getIsMappingInProgress)
-      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"), "mapAuthors")
+    if (authorMapperService.getIsMappingInProgress)
+      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"))
     else
       Ok.sendFile(
         content = new File("./author-mapping.csv"),
@@ -65,15 +65,8 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
     }
   }
 
-  private def badRequestResponse(queryValidation: Alert, page: String) = {
-    page match {
-      case "mapAuthors" =>
-        BadRequest(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion, Seq(queryValidation)))
-      case _ =>
-        BadRequest(views.html.index(environment, swsBaseUrl, defaultContentVersion, Seq(queryValidation)))
-    }
-
-  }
+  private def badRequestResponse(queryValidation: Alert) =
+    BadRequest(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion, Seq(queryValidation)))
 
   private def startMapper(query: String, createMissingDocuments: Boolean) = {
     authorMapperService.map(query, createMissingDocuments)
