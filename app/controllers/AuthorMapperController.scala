@@ -5,10 +5,11 @@ import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponent
 import play.api.{Configuration, Logger}
 import service.authormapper.AuthorMapperService
 import views.alerts.{Alert, Warning, Success => SucessAlert}
-
 import play.api.data._
 import play.api.data.Forms._
+import scala.concurrent.ExecutionContext.Implicits.global
 
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -36,13 +37,23 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
   def map: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
     val (query, createMissingDocuments) = mapAuthorsForm.bindFromRequest().get
     if(authorMapperService.getIsMappingInProgress)
-      badRequestResponse(Warning("Warning", "Mapping already in progress"))
+      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"))
     else
       validateQuery(query) match {
         case Some(warning) => badRequestResponse(warning)
         case None          => startMapper(s"?$query&order=documentFormat", createMissingDocuments)
       }
 
+  }
+
+  def downloadMapping: Action[AnyContent] = Action {
+    if(authorMapperService.getIsMappingInProgress)
+      badRequestResponse(Warning("Warning", "Mapping already in progress, please wait"))
+    else
+      Ok.sendFile(
+        content = new File("./author-mapping.csv"),
+        fileName = _ => Some("author-mapping.csv")
+      )
   }
 
   private def validateQuery(query: String): Option[Alert] = {
