@@ -48,8 +48,14 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
   private val mappedAuthorsCache = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
   private val mappedFoldersCounter = new AtomicInteger(0)
   private val mappedDocumentsCounter = new AtomicInteger(0)
+  private var isMappingInProgress = false
 
   def map(swsQuery: String, createMissingDocuments: Boolean): Unit = {
+    if(isMappingInProgress){
+      throw new Exception("Mapping already in progress")
+    }
+    isMappingInProgress = true
+
     log.info(s"Mapping authors for SWS query $swsQuery ...")
     val file = Paths.get("author-mapping.csv")
     writeCsvHeader(file)
@@ -97,6 +103,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     mappedFoldersCounter.set(0)
     mappedDocumentsCounter.set(0)
     publishOneCache.cleanCache()
+    isMappingInProgress = false
   }
 
   private def writeCsvHeader(file: Path): Unit = {
@@ -189,6 +196,10 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     val csv = CSVWriter.open(sw)
     csv.writeRow(fields)
     sw.toString
+  }
+
+  def getIsMappingInProgress: Boolean ={
+    isMappingInProgress
   }
 
 }

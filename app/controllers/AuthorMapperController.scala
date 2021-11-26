@@ -8,7 +8,6 @@ import views.alerts.{Alert, Warning, Success => SucessAlert}
 
 import play.api.data._
 import play.api.data.Forms._
-import play.api.data.validation.Constraints._
 
 import javax.inject.Inject
 
@@ -36,10 +35,14 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
 
   def map: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
     val (query, createMissingDocuments) = mapAuthorsForm.bindFromRequest().get
-    validateQuery(query) match {
-      case Some(warning) => badRequestResponse(warning)
-      case None          => startMapper(s"?$query&order=documentFormat", createMissingDocuments)
-    }
+    if(authorMapperService.getIsMappingInProgress)
+      badRequestResponse(Warning("Warning", "Mapping already in progress"))
+    else
+      validateQuery(query) match {
+        case Some(warning) => badRequestResponse(warning)
+        case None          => startMapper(s"?$query&order=documentFormat", createMissingDocuments)
+      }
+
   }
 
   private def validateQuery(query: String): Option[Alert] = {
