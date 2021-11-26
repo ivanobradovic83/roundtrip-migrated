@@ -13,7 +13,7 @@ class SwsToPublishOneXmlTransformer {
   private lazy val log = Logger(getClass)
 
   def transform(roundTripDto: RoundTripDto, xhtml: Array[Byte], metaXml: Array[Byte]): Future[(Array[Byte], Array[Byte])] = {
-    log.info(s"${roundTripDto.toString} XSL transformation started")
+    log.info(s"$roundTripDto XSL transformation started")
 
     val transformationInputXml =
       <document> { xml.XML.load(new ByteArrayInputStream(xhtml)) } {xml.XML.load(new ByteArrayInputStream(metaXml))} </document>
@@ -25,7 +25,7 @@ class SwsToPublishOneXmlTransformer {
     xml.XML.save("./transformed-doc.xhtml", xml.XML.load(new ByteArrayInputStream(transformedDocumentXml)))
     xml.XML.save("./transformed-meta.xhtml", xml.XML.load(new ByteArrayInputStream(transformedMetaXml)))
 
-    log.info(s"${roundTripDto.toString} XSL transformation ended")
+    log.info(s"$roundTripDto XSL transformation ended")
     Future.successful((transformedDocumentXml, transformedMetaXml))
   }
 
@@ -34,7 +34,7 @@ class SwsToPublishOneXmlTransformer {
     var currentTransformation = transformationInputXml
 
     for (xsltName <- getXslTransformationNames(xsltFolderPath)) {
-      log.debug(s"${roundTripDto.toString} applying XSLT  $xsltFolderPath/$xsltName")
+      log.debug(s"$roundTripDto applying XSLT  $xsltFolderPath/$xsltName")
       currentTransformation = new XmlTransformer(s"$xsltLocation/${roundTripDto.docType}/$xsltName").transform(currentTransformation)
     }
     currentTransformation

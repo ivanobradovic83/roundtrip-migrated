@@ -28,36 +28,40 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
 
   private lazy val log = Logger(getClass)
 
-  def importDocument(roundTripDto: RoundTripDto, content: Array[Byte], docMetadata: Map[String, AnyRef]): Future[ImportedDocumentDto] = {
-    log.info(s"${roundTripDto.toString} Import document started")
+  def importDocument(roundTripDto: RoundTripDto,
+                     content: Array[Byte],
+                     folderMetadata: Map[String, AnyRef],
+                     docMetadata: Map[String, AnyRef]): Future[ImportedDocumentDto] = {
+    log.info(s"$roundTripDto Import document started")
     for {
-      folderId <- createFolder(roundTripDto)
+      folderId <- createFolder(roundTripDto, folderMetadata)
       docId <- createDocument(roundTripDto, folderId, docMetadata)
       _ <- setDocumentContent(roundTripDto, docId, content)
       _ <- createAuthorLinks(roundTripDto, folderId, docMetadata)
-      _ <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId imported"))
+      _ <- Future.successful(log.info(s"$roundTripDto Document $docId imported"))
     } yield ImportedDocumentDto(folderId, roundTripDto.docKey, Seq(docId))
   }
 
-  private def createFolder(roundTripDto: RoundTripDto): Future[Int] = {
-    log.info(s"${roundTripDto.toString} Create folder started")
+  private def createFolder(roundTripDto: RoundTripDto, folderMetadata: Map[String, AnyRef]): Future[Int] = {
+    log.info(s"$roundTripDto Create folder started")
+    val folderMetadataString = convertMetadataToStringValues(folderMetadata)
     folderApi
-      .createFolder(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter)
+      .createFolder(roundTripDto.destination.toInt, roundTripDto.docKey, documentTypeCommenter, folderMetadataString)
       .map(response => {
         val id = (response \ "id").as[Int]
-        log.info(s"${roundTripDto.toString} Folder $id created")
+        log.info(s"$roundTripDto Folder $id created")
         id
       })
   }
 
   private def createDocument(roundTripDto: RoundTripDto, folderId: Int, docMetadata: Map[String, AnyRef]): Future[Int] = {
-    log.info(s"${roundTripDto.toString} Create document in folder $folderId started")
+    log.info(s"$roundTripDto Create document in folder $folderId started")
     val docMetadataString = convertMetadataToStringValues(docMetadata)
     documentApi
       .createDocument(folderId, roundTripDto.docKey, documentTypeCommenter, docMetadataString)
       .map(response => {
         val docId = (response \ "id").as[Int]
-        log.info(s"${roundTripDto.toString} Document $docId created in folder $folderId")
+        log.info(s"$roundTripDto Document $docId created in folder $folderId")
         docId
       })
   }
@@ -74,15 +78,15 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
   }
 
   private def setDocumentContent(roundTripDto: RoundTripDto, docId: Int, content: Array[Byte]) = {
-    log.info(s"${roundTripDto.toString} Setting document content $docId started")
+    log.info(s"$roundTripDto Setting document content $docId started")
     for {
       _ <- documentApi.uploadDocumentContent(docId, new String(content, StandardCharsets.UTF_8))
-      result <- Future.successful(log.info(s"${roundTripDto.toString} Document $docId content set"))
+      result <- Future.successful(log.info(s"$roundTripDto Document $docId content set"))
     } yield result
   }
 
   private def createAuthorLinks(roundTripDto: RoundTripDto, folderId: Int, docMetadata: Map[String, AnyRef]): Future[Any] = {
-    log.info(s"${roundTripDto.toString} Creating links to author documents in folder $folderId started")
+    log.info(s"$roundTripDto Creating links to author documents in folder $folderId started")
     Future.sequence(getAuthorDocuments(docMetadata).map(createAuthorLinks(roundTripDto, folderId, _)))
   }
 
@@ -90,7 +94,7 @@ class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentAp
     docMetadata.get(listItemsAuthor).map(_.asInstanceOf[Seq[AuthorDocumentMapping]]).getOrElse(Seq.empty)
 
   private def createAuthorLinks(roundTripDto: RoundTripDto, folderId: Int, authorDoc: AuthorDocumentMapping) = {
-    val logPrefix: String = s"${roundTripDto.toString} ${authorDoc.toString}"
+    val logPrefix: String = s"$roundTripDto authorDoc"
     log.info(s"$logPrefix Creating link to author document in folder $folderId started")
     for {
       _ <- linkApi.createInternalLink(folderId, authorDoc.title, documentTypeCommenter, authorDoc.id)

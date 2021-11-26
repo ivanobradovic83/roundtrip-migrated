@@ -685,6 +685,15 @@
                             </item>
                         </xsl:for-each>
                     </add-legalArea>
+                    <legalArea>
+                        <xsl:for-each select="legalArea">
+                            <xsl:variable name="legalAreacode"
+                                          select="translate(identifier,$upper-case,$lower-case)"/>
+                            <item key="{identifier}">
+                                <xsl:text> </xsl:text>
+                            </item>
+                        </xsl:for-each>
+                    </legalArea>
                 </xsl:otherwise>
             </xsl:choose>
 
@@ -696,6 +705,28 @@
                         </item>
                     </xsl:for-each>
                 </add-audience>
+            </xsl:if>
+
+            <xsl:if test="audience">
+                <audience>
+                    <item key="{audience}">
+                        <xsl:text> </xsl:text>
+                    </item>
+                </audience>
+            </xsl:if>
+
+            <xsl:if test="type and starts-with(type, 'cmt.')">
+                <dc-type>
+                    <item key="cmt">
+                        <xsl:text> </xsl:text>
+                    </item>
+                </dc-type>
+            </xsl:if>
+
+            <xsl:if test="isPartOf">
+                <isPartOf key="{isPartOf}">
+                    <xsl:text> </xsl:text>
+                </isPartOf>
             </xsl:if>
 
             <xsl:if test="property[name[.='rechtsthema']] and contains(type,'cmt.') ">

@@ -31,7 +31,7 @@ class PublishOnePublicator @Inject()(publicationApi: PublicationApi, nodeOpsApi:
   private lazy val contentDispositionDocumentNamePattern = ".*filename=(.*?);.*".r
 
   def publish(roundTripDto: RoundTripDto, importedDocDto: ImportedDocumentDto): Future[Unit] = {
-    lazy val logPrefix = s"${roundTripDto.toString} ${importedDocDto.toString}"
+    lazy val logPrefix = s"$roundTripDto $importedDocDto"
     log.info(s"$logPrefix Publishing started")
     publishFlow(logPrefix, importedDocDto)
       .map(_ => log.info(s"$logPrefix Publishing done"))

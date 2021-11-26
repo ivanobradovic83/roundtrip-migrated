@@ -14,23 +14,23 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
- * Tries to map given author to it's corresponding document in PublishOne author folder
- *
- * @param nodeApi PublishOne Node API
- * @param metadataApi PublishOne Metadata API
- * @param publishOneCache PublishOne cache
- */
+  * Tries to map given author to it's corresponding document in PublishOne author folder
+  *
+  * @param nodeApi PublishOne Node API
+  * @param metadataApi PublishOne Metadata API
+  * @param publishOneCache PublishOne cache
+  */
 class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, publishOneCache: PublishOneCache) {
 
   private lazy val log = Logger(getClass)
 
   def map(author: Author, folder: AuthorFolder): Future[Option[AuthorDocument]] = {
-    log.info(s"${author.toString} ${folder.toString} Mapping author document started")
+    log.info(s"$author $folder Mapping author document started")
     val publicationId = publishOneCache.mapListItemValue(listItemsPublicationName, author.publicationName)
     for {
       authorDocuments <- getAuthorDocuments(folder.id)
       authorDocument <- mapAuthorsToDocuments(publicationId, authorDocuments)
-      _ <- Future.successful(log.info(s"${author.toString} ${folder.toString} Author mapped to ${authorDocument.toString}"))
+      _ <- Future.successful(log.info(s"author $folder Author mapped to $authorDocument"))
     } yield authorDocument
   }
 
@@ -49,7 +49,9 @@ class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi,
         val fieldValue = (field \ "value").get.toString()
         if (fieldValue == "\"[" + publicationId + "]\"") true
         else false
-      }.head
+      }
+      .headOption
+      .getOrElse(false)
   }
 
   private def getAuthorDocuments(folderId: Int): Future[Seq[AuthorDocument]] =

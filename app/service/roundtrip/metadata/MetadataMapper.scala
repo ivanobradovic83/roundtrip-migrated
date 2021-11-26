@@ -3,7 +3,7 @@ package service.roundtrip.metadata
 import components.publishone.MetadataApi
 import dto.RoundTripDto
 import play.api.Logger
-import util.NodeTypes
+import util.NodeTypes.NodeType
 import util.PublishOneConstants._
 import play.api.libs.json._
 import service.roundtrip.model.AuthorDocumentMapping
@@ -30,29 +30,33 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: M
 
   private lazy val log = Logger(getClass)
 
-  def mapXmlMetadata(roundTripDto: RoundTripDto, metadataXml: Array[Byte]): Future[Map[String, AnyRef]] = {
-    log.info(s"${roundTripDto.toString} Map XML metadata to Json started")
+  def mapXmlMetadata(roundTripDto: RoundTripDto, metadataXmlContent: Array[Byte], nodeType: NodeType): Future[Map[String, AnyRef]] = {
+    log.info(s"$roundTripDto Map $nodeType XML metadata to Json started")
     for {
-      metadataDefs <- getMetadataDefinitions(roundTripDto.docType)
-      metadataJson <- mapXmlToJsonMetadata(metadataXml, metadataDefs)
-      _ <- Future.successful(log.info(s"${roundTripDto.toString} XML metadata mapped to Json"))
+      metadataDefs <- getMetadataDefinitions(roundTripDto.docType, nodeType)
+      metadataJson <- mapXmlToJsonMetadata(metadataXmlContent, metadataDefs)
+      _ <- Future.successful(log.info(s"$roundTripDto $nodeType XML metadata mapped to Json"))
     } yield metadataJson
   }
 
-  private def mapXmlToJsonMetadata(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Map[String, AnyRef]] =
-    getJsonMetadataValues(metadataXml, metadataDefs)
+  private def mapXmlToJsonMetadata(metadataXmlContent: Array[Byte], metadataDefs: Seq[JsValue]): Future[Map[String, AnyRef]] =
+    getJsonMetadataValues(metadataXmlContent, metadataDefs)
       .map(filterNonEmpty)
       .map(_.toMap)
 
-  private def getJsonMetadataValues(metadataXml: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, AnyRef)]] = {
-    val metadataXmlChildren = xml.XML.load(new ByteArrayInputStream(metadataXml)).child
-    val getJsonMetadataValueFutures = metadataXmlChildren.map(getJsonMetadataValue(metadataDefs, _))
+  private def getJsonMetadataValues(metadataXmlContent: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, AnyRef)]] = {
+    val metadataXmlChildren = xml.XML.load(new ByteArrayInputStream(metadataXmlContent)).child
+    val getJsonMetadataValueFutures = metadataDefs.map { metadataDef =>
+      val metadataDefName = (metadataDef \ "name").as[String]
+      metadataXmlChildren.find(_.label == metadataDefName) match {
+        case Some(metadataValue) => getJsonMetadataValue(metadataDefName, metadataDef, metadataValue)
+        case None                => Future.successful(metadataDefName, null)
+      }
+    }
     Future.sequence(getJsonMetadataValueFutures)
   }
 
-  private def getJsonMetadataValue(metadataDefs: Seq[JsValue], metadataXmlChild: Node): Future[(String, AnyRef)] = {
-    val metadataName = metadataXmlChild.label
-    val metadataDef = getMetadataDefinition(metadataDefs, metadataName)
+  private def getJsonMetadataValue(metadataName: String, metadataDef: JsValue, metadataXmlChild: Node): Future[(String, AnyRef)] = {
     val getMetadataValue: Future[AnyRef] = getMetadataType(metadataDef) match {
       case "selectList" if metadataName == listItemsAuthor => handleAuthors(metadataXmlChild)
       case "selectList" if isMultiSelectList(metadataDef)  => handleMultiSelectList(metadataXmlChild, metadataDef)
@@ -112,15 +116,10 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: M
     else Future.successful(stringifyStrings(stringValues))
   }
 
-  private def getMetadataDefinitions(documentTypeKey: String): Future[Seq[JsValue]] =
+  private def getMetadataDefinitions(documentTypeKey: String, nodeType: NodeType): Future[Seq[JsValue]] =
     metadataApi
-      .getMetadataDefinitions(documentTypeKey, NodeTypes.Document)
+      .getMetadataDefinitions(documentTypeKey, nodeType)
       .map(jsValue => (jsValue \\ "metadataFields").toSeq.flatMap(_.as[Seq[JsValue]]))
-
-  private def getMetadataDefinition(metadataDefinitions: Seq[JsValue], name: String): JsValue =
-    metadataDefinitions
-      .filter(metaDefinition => (metaDefinition \ "name").as[String] == name)
-      .head
 
   private def getMetadataType(metadataDefinition: JsValue): String =
     (metadataDefinition \ "baseMetadataType").as[String]
