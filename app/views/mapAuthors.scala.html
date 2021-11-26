@@ -29,12 +29,10 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Map authors</button>
-                        <button type="submit"
-                                class="btn btn-primary"
-                                formmethod="GET"
-                                formaction='@routes.AuthorMapperController.downloadMapping()'>
+                        <a href="@routes.AuthorMapperController.downloadMapping()"
+                           class="btn btn-primary">
                             Download author mapping
-                        </button>
+                        </a>
                     </form>
                 </div>
                 <div class="card-footer text-muted">
