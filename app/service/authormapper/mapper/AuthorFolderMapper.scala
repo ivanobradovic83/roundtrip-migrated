@@ -31,15 +31,21 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
     mapAuthorToFolder(author, author.familyName, author.givenName).map((author, _))
   }
 
-  private def mapAuthorToFolder(author: Author, familyName: String, givenName: String): Future[Option[AuthorFolder]] = {
+  private def mapAuthorToFolder(author: Author, familyName: String, givenName: String): Future[Option[AuthorFolder]] =
     getAuthorFoldersByMetadata(familyName, givenName)
       .flatMap {
-        case folders if notEmpty(givenName) && folders.length == 1 => folderFound(author, folders.head)
+        case folders if notEmpty(givenName) && folders.length == 1 => setAuthorItemIdOnFoundFolder(author, folders.head)
         case folders if folders.nonEmpty                           => mapAuthorToFolderByFilteringFoldersMetadata(folders, author)
         case _ if notEmpty(givenName)                              => mapAuthorToFolder(author, familyName, null)
         case _                                                     => folderNotFound(author)
       }
-  }
+
+  private def setAuthorItemIdOnFoundFolder(author: Author, folder: AuthorFolder): Future[Option[AuthorFolder]] =
+    getAuthorFolderMetadata(folder.id)
+      .flatMap { folderMetadata =>
+        folder.authorItemId = folderMetadata.authorItemId
+        folderFound(author, folder)
+      }
 
   private def mapAuthorToFolderByFilteringFoldersMetadata(folders: Seq[AuthorFolder], author: Author): Future[Option[AuthorFolder]] = {
     log.info(s"Trying to map $author by folders metadata $folders ...")
@@ -47,8 +53,10 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
       .flatMap { folderMetadata =>
         val filters = Seq[MappingFilter](filterByFamilyGivenNameInitials, filterByFamilyGivenName, filterByFamilyNameInitials)
         applyFilters(author, folders.head, folderMetadata, filters) match {
-          case Some(mappedFolder)        => Future.successful(Option(mappedFolder))
-          case None if folders.size == 1 => Future.successful(Option.empty)
+          case Some(mappedFolder) =>
+            mappedFolder.authorItemId = folderMetadata.authorItemId
+            folderFound(author, mappedFolder)
+          case None if folders.size == 1 => folderNotFound(author)
           case None                      => mapAuthorToFolderByFilteringFoldersMetadata(folders.tail, author)
         }
       }
@@ -84,13 +92,8 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
   private def getAuthorFoldersByMetadata(familyName: String, givenName: String): Future[Seq[AuthorFolder]] =
     nodeApi.getNodesByFamilyGivenNameInitials(familyName, givenName, null).map(responseToAuthorFolders)
 
-  private def getAuthorFolderMetadata(folderId: Int): Future[FolderMetadata] = {
-    nodeApi
-      .getNodeMetadata(folderId)
-      .map(metadata => {
-        transformToFamilyGivenNameAndInitials(metadata)
-      })
-  }
+  private def getAuthorFolderMetadata(folderId: Int): Future[FolderMetadata] =
+    nodeApi.getNodeMetadata(folderId).map(transformToFamilyGivenNameAndInitials)
 
   private def transformToFamilyGivenNameAndInitials(response: JsValue): FolderMetadata = {
     val metadataFields = (response \\ "metadataFields").toSeq.flatMap(_.as[Seq[JsValue]])
@@ -111,16 +114,12 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
 
   private def folderFound(author: Author, folder: AuthorFolder): Future[Option[AuthorFolder]] = {
     log.info(s"Found mapping folder $folder for $author")
-    getAuthorFolderMetadata(folder.id)
-      .map { folderMetadata =>
-        folder.authorItemId = folderMetadata.authorItemId
-        Some(folder)
-      }
+    Future.successful(Some(folder))
   }
 
-  private def folderNotFound(author: Author) = {
+  private def folderNotFound(author: Author): Future[Option[AuthorFolder]] = {
     log.info(s"No mapping folder for $author")
-    Future.successful(Option.empty)
+    Future.successful(Option.empty[AuthorFolder])
   }
 
 }
