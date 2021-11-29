@@ -50,8 +50,10 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
   private val mappedDocumentsCounter = new AtomicInteger(0)
   private var isMappingInProgress = false
 
+  def getIsMappingInProgress: Boolean = isMappingInProgress
+
   def map(swsQuery: String, createMissingDocuments: Boolean): Unit = {
-    if(isMappingInProgress){
+    if (isMappingInProgress) {
       throw new Exception("Mapping already in progress")
     }
     isMappingInProgress = true
@@ -196,10 +198,6 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     val csv = CSVWriter.open(sw)
     csv.writeRow(fields)
     sw.toString
-  }
-
-  def getIsMappingInProgress: Boolean ={
-    isMappingInProgress
   }
 
 }

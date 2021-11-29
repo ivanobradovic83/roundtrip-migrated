@@ -32,6 +32,7 @@ object PublishOneConstants {
   val apiOps = s"$apiPrefix/operations"
   val apiOpsAssign = s"$apiOps/assign"
   val apiOpsStateChange = s"$apiOps/statechange"
+  val apiOpsDelete = s"$apiOps/delete"
   val apiPublications = s"$apiPrefix/publications"
   val apiDocumentTypes = s"$apiPrefix/documenttypes"
   val apiLinks = s"$apiPrefix/links"

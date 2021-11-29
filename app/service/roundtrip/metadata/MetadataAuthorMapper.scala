@@ -26,9 +26,9 @@ class MetadataAuthorMapper @Inject()() {
     val csv = CSVReader.open("author-mapping.csv")
     csv.toStream.tail.foreach { row =>
       val swsAuthorId = row(swsAuthorIdIndex)
-      val p1AuthorDocId = row(p1AuthorDocIdIndex)
-      val p1AuthorDocName = row(p1AuthorDocNameIndex)
-      val p1AuthorItemId = row(p1AuthorItemIdIndex)
+      val p1AuthorDocId = if (row.size > p1AuthorDocIdIndex) row(p1AuthorDocIdIndex) else ""
+      val p1AuthorDocName = if (row.size > p1AuthorDocNameIndex) row(p1AuthorDocNameIndex) else ""
+      val p1AuthorItemId = if (row.size > p1AuthorItemIdIndex) row(p1AuthorItemIdIndex) else ""
       if (notEmpty(p1AuthorDocId) && notEmpty(p1AuthorDocName))
         authorDocumentMappingCache.put(swsAuthorId, AuthorDocumentMapping(p1AuthorDocId.toInt, p1AuthorDocName, p1AuthorItemId))
     }

@@ -43,6 +43,11 @@ class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, a
     } yield status
   }
 
+  def deleteNode(nodeId: Int, includeDescendants: Boolean): Future[JsValue] = {
+    val requestBody = deleteNodeRequestBody(nodeId, includeDescendants)
+    postJson(apiOpsDelete, requestBody)
+  }
+
   private def assignAuthorRequestBody(docId: Int, userId: String) = {
     val selectedNode = Json.obj(
       "nodeId" -> docId,
@@ -58,6 +63,16 @@ class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, a
         "selectedNodes" -> Seq(selectedNode),
         "assignments" -> Seq(authorAssignment)
       ))
+  }
+
+  private def deleteNodeRequestBody(nodeId: Int, includeDescendants: Boolean) = {
+    val selectedNode = Json.obj(
+      "nodeId" -> nodeId,
+      "includeDescendants" -> includeDescendants
+    )
+    Json.obj(
+      "selectedNodes" -> Seq(selectedNode)
+    )
   }
 
   private def stateChangeRequestBody(docId: Int, currentStateId: Int, nextStateId: Int) = {

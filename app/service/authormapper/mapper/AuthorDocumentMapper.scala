@@ -25,21 +25,20 @@ class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi,
   private lazy val log = Logger(getClass)
 
   def map(author: Author, folder: AuthorFolder): Future[Option[AuthorDocument]] = {
-    log.info(s"$author $folder Mapping author document started")
+    log.info(s"$author $folder Mapping author document ...")
     val publicationId = publishOneCache.mapListItemValue(listItemsPublicationName, author.publicationName)
     for {
       authorDocuments <- getAuthorDocuments(folder.id)
-      authorDocument <- mapAuthorsToDocuments(publicationId, authorDocuments)
-      _ <- Future.successful(log.info(s"author $folder Author mapped to $authorDocument"))
+      authorDocument <- mapAuthorsToDocuments(author, publicationId, authorDocuments)
     } yield authorDocument
   }
 
-  private def mapAuthorsToDocuments(publicationId: String, authorDocuments: Seq[AuthorDocument]): Future[Option[AuthorDocument]] =
+  private def mapAuthorsToDocuments(author: Author, publicationId: String, authorDocuments: Seq[AuthorDocument]): Future[Option[AuthorDocument]] =
     metadataApi.getDocumentMetadata(authorDocuments.head.id).flatMap { metadata =>
       val isMatched = matchPublicationName(publicationId, metadata)
-      if (isMatched) Future.successful(Some(authorDocuments.head))
-      else if (authorDocuments.size == 1) Future.successful(None)
-      else mapAuthorsToDocuments(publicationId, authorDocuments.tail)
+      if (isMatched) documentFound(author, authorDocuments.head)
+      else if (authorDocuments.size == 1) documentNotFound(author)
+      else mapAuthorsToDocuments(author, publicationId, authorDocuments.tail)
     }
 
   private def matchPublicationName(publicationId: String, metadata: JsValue): Boolean = {
@@ -56,5 +55,15 @@ class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi,
 
   private def getAuthorDocuments(folderId: Int): Future[Seq[AuthorDocument]] =
     nodeApi.getChildNodes(folderId).map(nodesResponse => responseToAuthorDocuments((nodesResponse \ "items").get))
+
+  private def documentFound(author: Author, document: AuthorDocument): Future[Option[AuthorDocument]] = {
+    log.info(s"Found mapping document $document for $author")
+    Future.successful(Some(document))
+  }
+
+  private def documentNotFound(author: Author): Future[Option[AuthorDocument]] = {
+    log.info(s"No mapping document for $author")
+    Future.successful(Option.empty[AuthorDocument])
+  }
 
 }

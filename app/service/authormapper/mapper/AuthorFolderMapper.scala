@@ -27,7 +27,7 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
   type MappingFilter = (Author, FolderMetadata) => Boolean
 
   def map(author: Author): Future[(Author, Option[AuthorFolder])] = {
-    log.info(s"Mapping $author ...")
+    log.info(s"$author Mapping author folder ...")
     mapAuthorToFolder(author, author.familyName, author.givenName).map((author, _))
   }
 
