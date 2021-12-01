@@ -969,9 +969,6 @@
         <xsl:copy>
             <xsl:apply-templates />
         </xsl:copy>
-        <xsl:for-each select="//creator[role[.='auteur']]">
-            <p class="Auteur"><xsl:value-of select="name"/></p>
-        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="section[@class='sws-amendments-description']"/>
@@ -1045,54 +1042,36 @@
             <xsl:when test="section[@class='sws-commentary-text']">
                 <xsl:apply-templates select="section[@class='sws-commentary-text']"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_commentaar">Commentaar</h2><p>{Schrijf hier uw commentaar}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <xsl:choose>
             <xsl:when test="//metadata/audience[.='specialist'] and section[@class='sws-references-caselaw']">
                 <xsl:apply-templates select="section[@class='sws-references-caselaw']"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_jurisprudentie">Jurisprudentie</h2><p>{Geef hier een overzicht van de jurisprudentie}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <xsl:choose>
             <xsl:when test="section[@class='sws-references-literature']">
                 <xsl:apply-templates select="section[@class='sws-references-literature']"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_literatuur">Literatuur</h2><p>{Hier plaatst u de literatuurlijst}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <xsl:choose>
             <xsl:when test="section[@class='sws-references-legislation']">
                 <xsl:apply-templates select="section[@class='sws-references-legislation']"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_besluiten">Besluiten</h2><p>{Geef hier een overzicht van relevante besluiten en regelingen}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <xsl:choose>
             <xsl:when test="//metadata/audience[.='ndfr'] and section[@class='sws-references-official-publications']">
                 <xsl:apply-templates select="section[@class='sws-references-official-publications']"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_parlementaire geschiedenis">Parlementaire geschiedenis</h2><p>{Geef hier een overzicht van relevante Kamerstukken}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <xsl:choose>
             <xsl:when test="following-sibling::section[@class='sws-commentary-object-info'][section[@class='sws-amendments-description']]">
                 <xsl:apply-templates select="following-sibling::section[@class='sws-commentary-object-info']/section[@class='sws-amendments-description']" mode="commentaar"/>
             </xsl:when>
-            <xsl:otherwise>
-                <h2 class="Kop_wijzigingen">Beschrijving van de wijzigingen</h2><p>{Geef hier een beschrijving van de wijzigingen in dit artikel}</p><p/>
-            </xsl:otherwise>
         </xsl:choose>
 
     </xsl:template>
