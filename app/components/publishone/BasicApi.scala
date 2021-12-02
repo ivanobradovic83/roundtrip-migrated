@@ -7,7 +7,7 @@ import play.api.Logger
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 import util.ConfigUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +24,7 @@ abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessToke
 
   private lazy val log = Logger(getClass)
 
-  protected def post(relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: JsObject): Future[WSResponse] = {
+  protected def post[T: BodyWritable](relativeUrl: String, headers: Seq[(String, String)] = Seq.empty, requestBody: T): Future[WSResponse] = {
     val wsRequest = (at: String) =>
       createWsRequest(POST, relativeUrl, at)
         .addHttpHeaders(headers: _*)

@@ -1,0 +1,61 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "role",
+        "displayName": "Rol",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/59/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[6582]"
+      },
+      {
+        "name": "publicationName",
+        "displayName": "Publicatienaam",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/58/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[6344]"
+      },
+      {
+        "name": "documentKey",
+        "displayName": "Document Key (NIET AANPASSEN)",
+        "required": false,
+        "canEdit": false,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": ""
+      }
+    ]
+  }
+]

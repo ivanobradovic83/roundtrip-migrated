@@ -1,0 +1,167 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "dc-creator",
+        "displayName": "Auteur ",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/8/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": false
+        },
+        "value": "[]"
+      },
+      {
+        "name": "givenName",
+        "displayName": "Voornaam",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": ""
+      },
+      {
+        "name": "familyName",
+        "displayName": "Achternaam",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": ""
+      },
+      {
+        "name": "familyNamePrefix",
+        "displayName": "Tussenvoegsel",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/55/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": null
+      },
+      {
+        "name": "initials",
+        "displayName": "Voorletters",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": ""
+      },
+      {
+        "name": "prefix",
+        "displayName": "Titel(s) voor",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/53/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": null
+      },
+      {
+        "name": "gender",
+        "displayName": "Geslacht",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/56/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": null
+      },
+      {
+        "displayName": "test1",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/123/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": null
+      },
+      {
+        "name": "test2",
+        "displayName": "test2",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": null
+      }
+    ]
+  }
+]

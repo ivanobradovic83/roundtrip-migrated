@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": 44094,
+      "title": "Zo",
+      "isLocked": false,
+      "hasChildren": true,
+      "numberOfChildren": 1,
+      "canEdit": true,
+      "nodeType": "folder",
+      "documentTypePath": "/api/documenttypes/auteursbeschrijvingen",
+      "lastModified": "2021-12-01T15:35:36.0395496+00:00",
+      "deadline": null,
+      "documentStatePath": null,
+      "parentId": 43033,
+      "containsDocuments": true,
+      "lockedByUserName": null,
+      "lockedAt": null,
+      "canDelete": true,
+      "canUpdateMetadata": true,
+      "canEditContent": false
+    }
+  ],
+  "total": 1
+}

@@ -40,8 +40,11 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.8.0-1",
   "com.github.tototoshi" %% "scala-csv" % "1.3.6",
   "com.saxonica" % "saxon9ee" % "9.3.0.4",
+  "org.mockito" % "mockito-core" % "3.3.0" % Test,
+  "org.scalamock" %% "scalamock" % "4.4.0" % Test,
+  "org.scalatestplus" %% "mockito-3-2" % "3.1.2.0" % Test,
   "de.leanovate.play-mockws" %% "play-mockws" % "2.8.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 )
 
 buildInfoKeys := Seq[BuildInfoKey](name, scalaVersion, sbtVersion)

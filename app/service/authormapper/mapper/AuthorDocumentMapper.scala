@@ -3,7 +3,7 @@ package service.authormapper.mapper
 import components.publishone.{MetadataApi, NodeApi}
 import play.api.Logger
 import play.api.libs.json.JsValue
-import service.authormapper.cache.PublishOneCache
+import service.authormapper.cache.ValueListCache
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import util.PublishOneConstants.listItemsPublicationName
 import util.PublishOneUtils.responseToAuthorDocuments
@@ -20,13 +20,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * @param metadataApi PublishOne Metadata API
   * @param publishOneCache PublishOne cache
   */
-class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, publishOneCache: PublishOneCache) {
+class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, publishOneCache: ValueListCache) {
 
   private lazy val log = Logger(getClass)
 
   def map(author: Author, folder: AuthorFolder): Future[Option[AuthorDocument]] = {
     log.info(s"$author $folder Mapping author document ...")
-    val publicationId = publishOneCache.mapListItemValue(listItemsPublicationName, author.publicationName)
+    val publicationId = publishOneCache.mapValueListItemId(listItemsPublicationName, author.publicationName)
     for {
       authorDocuments <- getAuthorDocuments(folder.id)
       authorDocument <- mapAuthorsToDocuments(author, publicationId, authorDocuments)
@@ -34,12 +34,14 @@ class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi,
   }
 
   private def mapAuthorsToDocuments(author: Author, publicationId: String, authorDocuments: Seq[AuthorDocument]): Future[Option[AuthorDocument]] =
-    metadataApi.getDocumentMetadata(authorDocuments.head.id).flatMap { metadata =>
-      val isMatched = matchPublicationName(publicationId, metadata)
-      if (isMatched) documentFound(author, authorDocuments.head)
-      else if (authorDocuments.size == 1) documentNotFound(author)
-      else mapAuthorsToDocuments(author, publicationId, authorDocuments.tail)
-    }
+    if (authorDocuments.isEmpty) Future.successful(Option.empty)
+    else
+      metadataApi.getDocumentMetadata(authorDocuments.head.id).flatMap { metadata =>
+        val isMatched = matchPublicationName(publicationId, metadata)
+        if (isMatched) documentFound(author, authorDocuments.head)
+        else if (authorDocuments.size == 1) documentNotFound(author)
+        else mapAuthorsToDocuments(author, publicationId, authorDocuments.tail)
+      }
 
   private def matchPublicationName(publicationId: String, metadata: JsValue): Boolean = {
     getMetadataFields(metadata)

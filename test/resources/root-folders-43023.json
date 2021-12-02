@@ -1,0 +1,45 @@
+{
+  "items": [
+    {
+      "id": 43026,
+      "title": "Aa",
+      "isLocked": false,
+      "hasChildren": false,
+      "numberOfChildren": 0,
+      "canEdit": true,
+      "nodeType": "folder",
+      "documentTypePath": "/api/documenttypes/auteursbeschrijvingen",
+      "lastModified": "2021-11-22T10:24:12.9520333+00:00",
+      "deadline": null,
+      "documentStatePath": null,
+      "parentId": 43023,
+      "containsDocuments": false,
+      "lockedByUserName": null,
+      "lockedAt": null,
+      "canDelete": true,
+      "canUpdateMetadata": true,
+      "canEditContent": false
+    },
+    {
+      "id": 43027,
+      "title": "Ab",
+      "isLocked": false,
+      "hasChildren": false,
+      "numberOfChildren": 0,
+      "canEdit": true,
+      "nodeType": "folder",
+      "documentTypePath": "/api/documenttypes/auteursbeschrijvingen",
+      "lastModified": "2021-11-22T10:24:20.7094068+00:00",
+      "deadline": null,
+      "documentStatePath": null,
+      "parentId": 43023,
+      "containsDocuments": false,
+      "lockedByUserName": null,
+      "lockedAt": null,
+      "canDelete": true,
+      "canUpdateMetadata": true,
+      "canEditContent": false
+    }
+  ],
+  "total": 2
+}

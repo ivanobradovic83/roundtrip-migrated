@@ -1,9 +1,10 @@
 package components
 
-import mockws.MockWSHelpers
+//import mockws.MockWSHelpers
 import org.scalatest._
 
-class SwsApiSpec extends AsyncWordSpec with MustMatchers with MockWSHelpers with BeforeAndAfterAll {
+class SwsApiSpec {
+//  extends AsyncWordSpec with MustMatchers with MockWSHelpers with BeforeAndAfterAll {
 
 //  override def afterAll(): Unit = {
 //    shutdownHelpers()

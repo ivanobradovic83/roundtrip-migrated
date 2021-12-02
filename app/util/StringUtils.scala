@@ -6,4 +6,6 @@ object StringUtils {
 
   def notEmpty(value: String): Boolean = value != null && value.nonEmpty
 
+  def isAllDigits(value: String): Boolean = value forall Character.isDigit
+
 }

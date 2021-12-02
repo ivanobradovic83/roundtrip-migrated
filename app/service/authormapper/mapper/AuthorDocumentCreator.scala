@@ -3,7 +3,7 @@ package service.authormapper.mapper
 import components.publishone.DocumentApi
 import play.api.Logger
 import play.api.libs.json.JsValue
-import service.authormapper.cache.PublishOneCache
+import service.authormapper.cache.ValueListCache
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import util.PublishOneConstants._
 
@@ -17,7 +17,7 @@ import scala.concurrent.Future
   * @param documentApi PublishOne Document API
   * @param publishOneCache PublishOne cache
   */
-class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, publishOneCache: PublishOneCache) {
+class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, publishOneCache: ValueListCache) {
 
   private lazy val log = Logger(getClass)
 
@@ -36,9 +36,9 @@ class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, publishOneCache:
 
   private def buildDocumentMetadata(author: Author) = {
     Map(
-      listItemsRole -> ("[" + publishOneCache.mapListItemValue(listItemsRole, "auteur") + "]"),
-      listItemsPublicationName -> ("[" + publishOneCache.mapListItemValue(listItemsPublicationName, author.publicationName) + "]"),
-      listItemsPublication -> publishOneCache.mapListItemValue(listItemsPublication, "online")
+      listItemsRole -> ("[" + publishOneCache.mapValueListItemId(listItemsRole, "auteur") + "]"),
+      listItemsPublicationName -> ("[" + publishOneCache.mapValueListItemId(listItemsPublicationName, author.publicationName) + "]"),
+      listItemsPublication -> publishOneCache.mapValueListItemId(listItemsPublication, "online")
     )
   }
 
