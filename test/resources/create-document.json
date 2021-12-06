@@ -1,0 +1,23 @@
+{
+  "id": 1234,
+  "title": "Document title",
+  "notes": "string",
+  "noteUpdatedByUserPath": "string",
+  "documentTypePath": "string",
+  "documentStatePath": "string",
+  "dueDate": "2021-12-06T13:05:32.328Z",
+  "documentContentEditingAbilityStatus": "allowEdit",
+  "locked": true,
+  "projectTitle": "string",
+  "lastModified": "2021-12-06T13:05:32.328Z",
+  "metadataLastModified": "2021-12-06T13:05:32.328Z",
+  "canEdit": true,
+  "originalDocumentPath": "string",
+  "canSubmit": true,
+  "canDelete": true,
+  "lockedByUserName": "string",
+  "lockedAt": "2021-12-06T13:05:32.328Z",
+  "projectFolderPath": "string",
+  "canEditContent": true,
+  "lastModifiedBy": "string"
+}
