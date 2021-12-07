@@ -5,6 +5,7 @@ import helpers.ScalaSpec
 import helpers.TestUtils.mockedJsonResp
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import service.common.cache.ValueListCache
 import util.PublishOneConstants.listItemsAuthor
 
 import scala.concurrent.Await
@@ -44,6 +45,8 @@ class AuthorListItemsCacheSpec extends ScalaSpec {
 
   "when empty cache, generates item id for counter 1" in {
     val letter = "L"
+    cut.nextAuthorKeyNo should be(empty)
+
     cut.getNextAuthorItemId(letter) should equal("L001")
     cut.nextAuthorKeyNo must have size 1
     cut.nextAuthorKeyNo should contain key letter
@@ -53,6 +56,7 @@ class AuthorListItemsCacheSpec extends ScalaSpec {
   }
 
   "when author list item id missing in cache then throw exception" in {
+    cut.nextAuthorKeyNo should be(empty)
     when(valueListCache.mapValueListId(listItemsAuthor)).thenReturn(None)
 
     val exception = the[Exception] thrownBy cut.initCache()

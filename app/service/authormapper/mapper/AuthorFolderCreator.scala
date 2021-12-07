@@ -3,8 +3,9 @@ package service.authormapper.mapper
 import components.publishone.{FolderApi, NodeOperationApi}
 import play.api.Logger
 import play.api.libs.json.JsValue
-import service.authormapper.cache.{AuthorRootFoldersCache, ValueListCache}
+import service.authormapper.cache.AuthorRootFoldersCache
 import service.authormapper.model.{Author, AuthorFolder}
+import service.common.cache.ValueListCache
 import util.PublishOneConstants.{documentTypeAuthor, _}
 import util.StringUtils._
 

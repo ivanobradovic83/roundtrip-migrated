@@ -19,7 +19,7 @@
                                     <span class="input-group-text">&version=@version&order=documentFormat</span>
                                 </div>
                             </div>
-                     </div>
+                        </div>
                         <div class="form-group">
                             <label class="control-label" for="documentType">Document type</label>
                             <div class="input-group mb-3">
@@ -34,11 +34,16 @@
                                 <input name="destination" id="destination" class="form-control" required="required" value="42923"/>
                             </div>
                         </div>
-                        <div class="form-group collapse" id="paths-form-group">
-                            <label class="control-label" for="paths">JSON Paths to return (one per line). Only applicable for CSV format.</label>
-                            <textarea class="form-control" name="paths" id="paths" rows="4" placeholder="identifier&#x0a;creator.value&#x0a;published.publicationName.identifier"></textarea>
+                        <div class="form-group">
+                            <label class="control-label" for="action">Action</label>
+                            <div class="input-group mb-3">
+                                <select name="action" id="action" class="form-control">
+                                    <option value="ImportOnly">Import only</option>
+                                    <option selected="selected" value="RoundTrip">Round-trip</option>
+                                </select>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Round-trip</button>
+                        <button type="submit" class="btn btn-primary">Start</button>
                     </form>
                 </div>
                 <div class="card-footer text-muted">

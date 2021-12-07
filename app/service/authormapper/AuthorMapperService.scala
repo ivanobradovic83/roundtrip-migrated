@@ -7,9 +7,11 @@ import com.github.tototoshi.csv.CSVWriter
 import components.publishone.AccessTokenHandler
 import components.sws.{SwsApi, SwsSourceApi}
 import play.api.Logger
-import service.authormapper.cache.{AuthorListItemsCache, AuthorRootFoldersCache, ValueListCache}
+import service.authormapper.cache.{AuthorListItemsCache, AuthorRootFoldersCache}
 import service.authormapper.mapper.{AuthorDocumentCreator, AuthorDocumentMapper, AuthorFolderCreator, AuthorFolderMapper}
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
+import service.common.cache.ValueListCache
+import service.common.monithoring.InProgressHandler
 import util.NodeTypes
 import util.PublishOneConstants.documentTypeAuthor
 
@@ -34,7 +36,8 @@ import javax.inject.Inject
   * @param authorDocumentCreator PublishOne author document creator
   * @param valueListCache PublishOne cache
   */
-class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
+class AuthorMapperService @Inject()(inProgressHandler: InProgressHandler,
+                                    swsSourceApi: SwsSourceApi,
                                     swsApi: SwsApi,
                                     accessTokenHandler: AccessTokenHandler,
                                     authorFolderMapper: AuthorFolderMapper,
@@ -48,7 +51,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
   type AuthorFolderDoc = (Author, Option[AuthorFolder], Option[AuthorDocument])
 
   private lazy val log = Logger(getClass)
-  private implicit val system: ActorSystem = ActorSystem("BackpressureBasics")
+  private implicit val system: ActorSystem = ActorSystem("AuthorMappingSystem")
   private val mappedAuthorsCache = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
   private val mappedFoldersCounter = new AtomicInteger(0)
   private val mappedDocumentsCounter = new AtomicInteger(0)
@@ -56,25 +59,15 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
     documentTypeAuthor -> NodeTypes.Document,
     documentTypeAuthor -> NodeTypes.Folder
   )
-  private var isMappingInProgress = false
-
-  def getIsMappingInProgress: Boolean = isMappingInProgress
 
   def map(swsQuery: String, createMissingDocuments: Boolean): Unit = {
     log.info(s"Mapping authors for SWS query $swsQuery ...")
-    handleInProgressFlag()
+    inProgressHandler.startProcess(getClass.getSimpleName)
     val file = initCsvFile()
     val start = System.currentTimeMillis()
     beforeMappingFlow
       .flatMap(_ => runMappingFlow(swsQuery, createMissingDocuments, file))
       .onComplete(_ => mappingFlowComplete(start))
-  }
-
-  private def handleInProgressFlag(): Unit = {
-    if (isMappingInProgress) {
-      throw new Exception("Mapping already in progress")
-    }
-    isMappingInProgress = true
   }
 
   private def beforeMappingFlow: Future[Unit] =
@@ -214,7 +207,7 @@ class AuthorMapperService @Inject()(swsSourceApi: SwsSourceApi,
         s"\nMapped author folders/documents count: $mappedFoldersCounter / $mappedDocumentsCounter" +
         s"\nNon mapped authors count: $nonMappedAuthorsCount")
     clean()
-    isMappingInProgress = false
+    inProgressHandler.stopProcess(getClass.getSimpleName)
   }
 
   private def clean(): Unit = {

@@ -1,4 +1,4 @@
-package service.authormapper.cache
+package service.common.cache
 
 import components.publishone.MetadataApi
 import play.api.libs.json.JsValue
@@ -22,8 +22,8 @@ import scala.concurrent.Future
 @Singleton
 class ValueListCache @Inject()(configUtils: ConfigUtils, metadataApi: MetadataApi) {
 
-  lazy val valueListItemsCache: TrieMap[String, TrieMap[String, String]] = new TrieMap[String, TrieMap[String, String]]()
-  lazy val valueListIdCache: TrieMap[String, Int] = new TrieMap[String, Int]()
+  protected[cache] lazy val valueListItemsCache: TrieMap[String, TrieMap[String, String]] = new TrieMap[String, TrieMap[String, String]]()
+  protected[cache] lazy val valueListIdCache: TrieMap[String, Int] = new TrieMap[String, Int]()
 
   def initCache(types: Seq[(String, NodeType)]): Future[Any] =
     Future.sequence(types.map {

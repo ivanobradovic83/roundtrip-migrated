@@ -6,7 +6,8 @@ import helpers.TestUtils.mockedJsonResp
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, verify, verifyNoInteractions, when}
-import service.authormapper.cache.{AuthorListItemsCache, ValueListCache}
+import service.authormapper.cache.AuthorListItemsCache
+import service.common.cache.ValueListCache
 import util.PublishOneConstants.listItemsAuthor
 
 import scala.concurrent.duration.DurationInt
@@ -58,7 +59,7 @@ class AuthorListItemsHandlerSpec extends ScalaSpec {
     when(valueListCache.mapValueListId(listItemsAuthor)).thenReturn(Some(authorValueListId))
     when(metadataApi.getValueListItems(authorValueListId)).thenReturn(mockedJsonResp("value-list-8"))
     when(authorListItemsCache.getNextAuthorItemId("J")).thenReturn(itemKey)
-    when(metadataApi.createValueListItem(ArgumentMatchers.eq(authorValueListId), any())).thenReturn(Future.successful())
+    when(metadataApi.createValueListItem(ArgumentMatchers.eq(authorValueListId), any())).thenReturn(Future.unit)
 
     val result = Await.result(cut.findOrCreate(itemName), 10.seconds)
     result should be(itemId)

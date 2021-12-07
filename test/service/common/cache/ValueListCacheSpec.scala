@@ -1,4 +1,4 @@
-package service.authormapper.cache
+package service.common.cache
 
 import components.publishone.MetadataApi
 import helpers.ScalaSpec
@@ -30,13 +30,13 @@ class ValueListCacheSpec extends ScalaSpec {
   "when cache initialized it should contain valid data" in {
     mockCache
 
-    cut.valueListItemsCache(listItemsAuthor) should contain allOf ("Zondag, W.A." -> "8853", "Jong, E.S. de" -> "8854")
-    cut.valueListItemsCache(listItemsPrefix) should contain allOf ("dr." -> "6025", "ing." -> "6027")
-    cut.valueListItemsCache(listItemsFamilyNamePrefix) should contain allOf ("de" -> "6044", "van" -> "6038")
-    cut.valueListItemsCache(listItemsGender) should contain allOf ("f" -> "6052", "m" -> "6051")
-    cut.valueListItemsCache(listItemsPublicationName) should contain allOf ("pk99" -> "6559", "c-ara" -> "6442")
-    cut.valueListItemsCache(listItemsRole) should contain allOf ("auteur" -> "6582", "muk" -> "6589")
-    cut.valueListIdCache should contain allOf (listItemsAuthor -> 8, listItemsPrefix -> 53, listItemsFamilyNamePrefix -> 55, listItemsGender -> 56, listItemsPublicationName -> 58, listItemsRole -> 59)
+    cut.valueListItemsCache(listItemsAuthor) should contain only ("Zondag, W.A." -> "8853", "Jong, E.S. de" -> "8854")
+    cut.valueListItemsCache(listItemsPrefix) should contain only ("dr." -> "6025", "ing." -> "6027")
+    cut.valueListItemsCache(listItemsFamilyNamePrefix) should contain only ("de" -> "6044", "van" -> "6038")
+    cut.valueListItemsCache(listItemsGender) should contain only ("f" -> "6052", "m" -> "6051")
+    cut.valueListItemsCache(listItemsPublicationName) should contain only ("pk99" -> "6559", "c-ara" -> "6442")
+    cut.valueListItemsCache(listItemsRole) should contain only ("auteur" -> "6582", "muk" -> "6589")
+    cut.valueListIdCache should contain only (listItemsAuthor -> 8, listItemsPrefix -> 53, listItemsFamilyNamePrefix -> 55, listItemsGender -> 56, listItemsPublicationName -> 58, listItemsRole -> 59)
   }
 
   "when cache initialized and cleaned it should be empty" in {

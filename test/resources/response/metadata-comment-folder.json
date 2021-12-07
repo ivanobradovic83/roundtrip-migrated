@@ -1,0 +1,79 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "legalArea",
+        "displayName": "Rechtsgebied(en)",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/2/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[3804]"
+      },
+      {
+        "name": "dc-type",
+        "displayName": "Informatiesoort",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/7/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[36]"
+      },
+      {
+        "name": "isPartOf",
+        "displayName": "Collectie",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/22/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": "2427"
+      },
+      {
+        "name": "audience",
+        "displayName": "Doelgroep",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/24/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[8754]"
+      }
+    ]
+  }
+]

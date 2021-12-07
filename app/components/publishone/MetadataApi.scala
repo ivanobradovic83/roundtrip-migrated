@@ -33,9 +33,9 @@ class MetadataApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, access
 
   def getDocumentMetadata(docId: Int): Future[JsValue] = getJson(s"$apiNodes/$docId/metadata")
 
-  def createValueListItem(valueListId: Int, xmlontent: String): Future[Unit] = {
+  def createValueListItem(valueListId: Int, xmlContent: String): Future[Unit] = {
     val tempFile = File.createTempFile("author-add-list-item-", ".xml")
-    Files.copy(new ByteArrayInputStream(xmlontent.getBytes), tempFile.toPath, StandardCopyOption.REPLACE_EXISTING)
+    Files.copy(new ByteArrayInputStream(xmlContent.getBytes), tempFile.toPath, StandardCopyOption.REPLACE_EXISTING)
     val filePart = FilePart("file", tempFile.getName, Some("text/xml"), FileIO.fromPath(tempFile.toPath))
 
     post(s"$apiValueLists/$valueListId/items", requestBody = Source(filePart :: List()))

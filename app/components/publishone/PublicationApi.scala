@@ -57,7 +57,7 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
   private def checkPublicationCreatedState(profileId: String,
                                            response: JsValue,
                                            counter: Int = configUtils.checkOperationStateMaxAttempts): Future[(String, String)] = {
-    log.info(s"Checking publication file state: $response")
+    log.debug(s"Checking publication file state: $response")
     val ticket = (response \ "path").as[String].split("/").last
     val state = (response \ "state").as[String]
     state match {

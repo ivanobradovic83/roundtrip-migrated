@@ -12,13 +12,13 @@
     "name": "ing."
   },
   {
+    "key": "empty1",
     "parentKey": null,
-    "id": 6029,
-    "name": "empty1"
+    "id": 6029
   },
   {
-    "key": "test",
+    "key": "empty2",
     "parentKey": null,
-    "name": "empty2"
+    "name": "test"
   }
 ]

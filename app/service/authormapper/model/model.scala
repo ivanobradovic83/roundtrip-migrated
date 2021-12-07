@@ -8,7 +8,7 @@ case class AuthorFolder(id: Int, title: String, var authorItemId: String = null)
 object AuthorFolder {
   lazy implicit val authorFolderReads: Reads[AuthorFolder] = (
     (JsPath \ "id").read[Int] and (JsPath \ "title").read[String] and Reads.pure("")
-    )(AuthorFolder.apply _)
+  )(AuthorFolder.apply _)
 }
 
 case class AuthorDocument(id: Int, title: String)

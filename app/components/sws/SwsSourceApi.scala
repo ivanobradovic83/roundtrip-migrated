@@ -18,7 +18,7 @@ class SwsSourceApi @Inject()(val config: Configuration, wsClient: WSClient) {
   private lazy val log = Logger(getClass)
   private lazy val baseUrl = config.get[String]("cwc.sws.url")
 
-  def searchAndStreamDocs(relativeUrl: String): Source[String, _] = {
+  def searchAndStreamDocs(relativeUrl: String): Source[String, Any] = {
 
     val keyExtractor = """^.*/([^\?]+).*$""".r
 

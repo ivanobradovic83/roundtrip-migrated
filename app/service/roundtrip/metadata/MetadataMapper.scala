@@ -1,15 +1,18 @@
 package service.roundtrip.metadata
 
 import components.publishone.MetadataApi
-import dto.RoundTripDto
 import play.api.Logger
+import play.api.libs.json.JsValue
+import service.common.cache.ValueListCache
+import service.roundtrip.model.{AuthorDocumentMapping, RoundTripDocument}
 import util.NodeTypes.NodeType
 import util.PublishOneConstants._
-import play.api.libs.json._
-import service.roundtrip.model.AuthorDocumentMapping
+import util.PublishOneUtils._
+import util.StringUtils._
 
 import java.io.ByteArrayInputStream
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
+import scala.collection.concurrent.TrieMap
 import scala.collection.immutable.Iterable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -26,103 +29,121 @@ import scala.xml.Node
   *
   * @param metadataApi PublishOne Metadata API
   */
-class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: MetadataAuthorMapper) {
+@Singleton
+class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: AuthorDocumentMapper, valueListCache: ValueListCache) {
 
   private lazy val log = Logger(getClass)
+  protected[metadata] lazy val metadataDefCache: TrieMap[String, Map[String, JsValue]] = new TrieMap[String, Map[String, JsValue]]()
 
-  def mapXmlMetadata(roundTripDto: RoundTripDto, metadataXmlContent: Array[Byte], nodeType: NodeType): Future[Map[String, AnyRef]] = {
-    log.info(s"$roundTripDto Map $nodeType XML metadata to Json started")
-    for {
-      metadataDefs <- getMetadataDefinitions(roundTripDto.docType, nodeType)
-      metadataJson <- mapXmlToJsonMetadata(metadataXmlContent, metadataDefs)
-      _ <- Future.successful(log.info(s"$roundTripDto $nodeType XML metadata mapped to Json"))
-    } yield metadataJson
+  def initCache(types: Seq[(String, NodeType)]): Future[Any] =
+    Future.sequence(types.map {
+      case (docType, nodeType) => loadMetadataDefinitionToCache(docType, nodeType)
+    })
+
+  def cleanCache(): Unit = metadataDefCache.clear()
+
+  def mapXmlMetadata(roundTripDoc: RoundTripDocument, metadataXmlContent: Array[Byte], nodeType: NodeType): Future[Map[String, AnyRef]] = Future {
+    log.info(s"$roundTripDoc Mapping $nodeType XML metadata to Json")
+    val metadataCacheKey = buildMetadataCacheKey(roundTripDoc.docType, nodeType)
+    metadataDefCache.get(metadataCacheKey) match {
+      case Some(metadataDef) =>
+        val jsonMetadata = mapXmlToJsonMetadata(metadataXmlContent, metadataDef)
+        log.debug(s"$roundTripDoc $nodeType XML metadata to Json mapped")
+        jsonMetadata
+      case None =>
+        log.warn(s"There is no cached metadata definitions for '$metadataCacheKey'")
+        Map.empty[String, AnyRef]
+    }
   }
 
-  private def mapXmlToJsonMetadata(metadataXmlContent: Array[Byte], metadataDefs: Seq[JsValue]): Future[Map[String, AnyRef]] =
-    getJsonMetadataValues(metadataXmlContent, metadataDefs)
-      .map(filterNonEmpty)
-      .map(_.toMap)
+  private def loadMetadataDefinitionToCache(docType: String, nodeType: NodeType): Future[Unit] =
+    metadataApi
+      .getMetadataDefinitions(docType, nodeType)
+      .map(getMetadataFields)
+      .map(cacheMetadataFields(buildMetadataCacheKey(docType, nodeType), _))
 
-  private def getJsonMetadataValues(metadataXmlContent: Array[Byte], metadataDefs: Seq[JsValue]): Future[Seq[(String, AnyRef)]] = {
+  private def cacheMetadataFields(metadataKey: String, metadataFields: Seq[JsValue]): Unit = {
+    val metadataFieldsMap = metadataFields
+      .map(toMetadataNameAndData)
+      .filter(_._1 != "")
+      .toMap
+    metadataDefCache += (metadataKey -> metadataFieldsMap)
+  }
+
+  private def buildMetadataCacheKey(docType: String, nodeType: NodeType) = s"$docType-$nodeType"
+
+  private def toMetadataNameAndData(metadataField: JsValue): (String, JsValue) = {
+    val metadataName = (metadataField \ "name").asOpt[String].getOrElse("")
+    if (isEmpty(metadataName)) log.warn(s"Missing metadata field name $metadataField")
+    (metadataName, metadataField)
+  }
+
+  private def mapXmlToJsonMetadata(metadataXmlContent: Array[Byte], metadataDef: Map[String, JsValue]): Map[String, AnyRef] = {
     val metadataXmlChildren = xml.XML.load(new ByteArrayInputStream(metadataXmlContent)).child
-    val getJsonMetadataValueFutures = metadataDefs.map { metadataDef =>
-      val metadataDefName = (metadataDef \ "name").as[String]
-      metadataXmlChildren.find(_.label == metadataDefName) match {
-        case Some(metadataValue) => getJsonMetadataValue(metadataDefName, metadataDef, metadataValue)
-        case None                => Future.successful(metadataDefName, null)
+    metadataDef
+      .map {
+        case (metadataDefName, metadataDef) =>
+          val metadataJsonValue = getJsonMetadataValue(metadataDefName, metadataDef, metadataXmlChildren)
+          (metadataDefName, metadataJsonValue)
       }
-    }
-    Future.sequence(getJsonMetadataValueFutures)
+      .filter(_._2 != null)
   }
 
-  private def getJsonMetadataValue(metadataName: String, metadataDef: JsValue, metadataXmlChild: Node): Future[(String, AnyRef)] = {
-    val getMetadataValue: Future[AnyRef] = getMetadataType(metadataDef) match {
-      case "selectList" if metadataName == listItemsAuthor => handleAuthors(metadataXmlChild)
-      case "selectList" if isMultiSelectList(metadataDef)  => handleMultiSelectList(metadataXmlChild, metadataDef)
-      case "selectList"                                    => handleSingleSelectList(metadataXmlChild, metadataDef)
+  private def getJsonMetadataValue(metadataName: String, metadataDef: JsValue, metadataXmlChildren: Seq[Node]): AnyRef =
+    metadataXmlChildren.find(_.label == metadataName) match {
+      case Some(metadataValue) => getJsonMetadataValue(metadataName, metadataDef, metadataValue)
+      case None                => null
+    }
+
+  private def getJsonMetadataValue(metadataName: String, metadataDef: JsValue, metadataXmlChild: Node): AnyRef =
+    getMetadataType(metadataDef) match {
+      case "selectList" if metadataName == listItemsAuthor => mapAuthorDocuments(metadataXmlChild)
+      case "selectList" if isMultiSelectList(metadataDef)  => handleMultiSelectList(metadataName, metadataXmlChild)
+      case "selectList"                                    => handleSingleSelectList(metadataName, metadataXmlChild)
       case "multipleStringValue"                           => handleMultipleStringValue(metadataXmlChild)
-      case _                                               => Future.successful(metadataXmlChild.text)
+      case _                                               => metadataXmlChild.text
     }
-    getMetadataValue.map((metadataName, _))
-  }
 
-  private def filterNonEmpty(jsonMetadataValues: Seq[(String, AnyRef)]): Seq[(String, AnyRef)] =
-    jsonMetadataValues.filter(_._2 != null)
-
-  private def handleSingleSelectList(metadataXmlChild: Node, metadataDef: JsValue): Future[String] = {
-    val itemKey = metadataXmlChild.attribute("key").map(keyNode => keyNode.text).head
-    getAndMapValueListItemKeysToIds(metadataDef, true, itemKey)
-  }
-
-  private def handleMultiSelectList(metadataXmlChild: Node, metadataDef: JsValue): Future[String] = {
-    val itemKeys = (metadataXmlChild \\ "item")
-      .flatMap(itemNode => itemNode.attribute("key"))
-      .map(keyNode => keyNode.text)
-    getAndMapValueListItemKeysToIds(metadataDef, false, itemKeys: _*)
-  }
-
-  private def handleAuthors(metadataXmlChild: Node): Future[Seq[AuthorDocumentMapping]] = {
+  private def mapAuthorDocuments(metadataXmlChild: Node): Seq[AuthorDocumentMapping] = {
     val swsAuthorIds = (metadataXmlChild \\ "item")
       .flatMap(itemNode => itemNode.attribute("key"))
       .map(keyNode => keyNode.text)
-    metadataAuthorMapper.initCache()
-    val authorDocs = swsAuthorIds
+    swsAuthorIds
       .map(metadataAuthorMapper.mapAuthorToDocument)
       .filter(_.isDefined)
       .flatten
-    Future.successful(authorDocs)
   }
 
-  private def getAndMapValueListItemKeysToIds(metadataDef: JsValue, singleSelect: Boolean, itemKeys: String*): Future[String] = {
-    val valueListPath = (metadataDef \ "settings" \ "valueListPath").as[String]
-    metadataApi
-      .getValueListItems(valueListPath)
-      .map(allItems => mapValueListItemKeysToIds(allItems.as[JsArray], singleSelect, itemKeys))
+  private def handleMultiSelectList(metadataName: String, metadataXmlChild: Node): String = {
+    val itemKeys = (metadataXmlChild \\ "item")
+      .flatMap(itemNode => itemNode.attribute("key"))
+      .map(keyNode => keyNode.text)
+    mapValueListItemKeysToIds(metadataName, false, itemKeys: _*)
   }
 
-  private def mapValueListItemKeysToIds(allItems: JsArray, singleSelect: Boolean, itemKeys: Seq[String]): String = {
-    val itemIds = allItems.value
-      .filter(item => itemKeys.contains((item \ "key").as[String]))
-      .map(item => (item \ "id").as[Int])
+  private def handleSingleSelectList(metadataName: String, metadataXmlChild: Node): String = {
+    val itemKey = metadataXmlChild.attribute("key").map(keyNode => keyNode.text).head
+    mapValueListItemKeysToIds(metadataName, true, itemKey)
+  }
+
+  private def mapValueListItemKeysToIds(metadataName: String, singleSelect: Boolean, itemKeys: String*): String = {
+    val itemIds = itemKeys.map(valueListCache.mapValueListItemId(metadataName, _)).filter(notEmpty)
     if (itemIds.isEmpty) null
-    else if (singleSelect) itemIds.head.toString
-    else stringifyNumbers(itemIds.toSeq)
+    else if (singleSelect) itemIds.head
+    else stringifyNumbers(itemIds)
   }
 
-  private def handleMultipleStringValue(metadataXmlChild: Node): Future[String] = {
+  private def handleMultipleStringValue(metadataXmlChild: Node): String = {
     val stringValues = metadataXmlChild.child.map(node => node.text).toSeq
-    if (stringValues.isEmpty) Future.successful(null)
-    else Future.successful(stringifyStrings(stringValues))
+    if (stringValues.isEmpty) null
+    else stringifyStrings(stringValues)
   }
-
-  private def getMetadataDefinitions(documentTypeKey: String, nodeType: NodeType): Future[Seq[JsValue]] =
-    metadataApi
-      .getMetadataDefinitions(documentTypeKey, nodeType)
-      .map(jsValue => (jsValue \\ "metadataFields").toSeq.flatMap(_.as[Seq[JsValue]]))
 
   private def getMetadataType(metadataDefinition: JsValue): String =
-    (metadataDefinition \ "baseMetadataType").as[String]
+    (metadataDefinition \ "baseMetadataType").asOpt[String] match {
+      case Some(metadataType) => metadataType
+      case None               => throw new Exception(s"Missing baseMetadataType in $metadataDefinition")
+    }
 
   private def isMultiSelectList(metadataDefinition: JsValue): Boolean =
     (metadataDefinition \ "settings" \ "multipleSelectList").as[Boolean]

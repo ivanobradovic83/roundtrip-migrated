@@ -3,6 +3,7 @@ package service.authormapper.cache
 import components.publishone.MetadataApi
 import play.api.Logger
 import play.api.libs.json.JsValue
+import service.common.cache.ValueListCache
 import util.PublishOneConstants.listItemsAuthor
 import util.StringUtils.isAllDigits
 

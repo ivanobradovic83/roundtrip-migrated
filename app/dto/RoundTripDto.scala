@@ -1,3 +1,5 @@
 package dto
 
-case class RoundTripDto(id: String, docKey: String, docType: String, destination: String)
+import util.RoundTripActions.RoundTripAction
+
+case class RoundTripDto(id: String, swsQuery: String, docType: String, destination: String, action: RoundTripAction)

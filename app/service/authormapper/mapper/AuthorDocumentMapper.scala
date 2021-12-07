@@ -3,8 +3,8 @@ package service.authormapper.mapper
 import components.publishone.{MetadataApi, NodeApi}
 import play.api.Logger
 import play.api.libs.json.JsValue
-import service.authormapper.cache.ValueListCache
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
+import service.common.cache.ValueListCache
 import util.PublishOneConstants.listItemsPublicationName
 import util.PublishOneUtils.responseToAuthorDocuments
 import util.PublishOneUtils._

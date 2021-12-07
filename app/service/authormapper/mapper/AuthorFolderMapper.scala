@@ -21,9 +21,7 @@ import scala.concurrent.Future
 class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
 
   private lazy val log = Logger(getClass)
-
   case class FolderMetadata(familyName: String, givenName: String, initials: String, authorItemId: String)
-
   type MappingFilter = (Author, FolderMetadata) => Boolean
 
   def map(author: Author): Future[(Author, Option[AuthorFolder])] = {

@@ -1,0 +1,156 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "publicationName",
+        "displayName": "Publicatienaam",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/47/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[4456]"
+      },
+      {
+        "name": "dc-creator",
+        "displayName": "Auteur",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/8/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": false
+        },
+        "value": "[3210]"
+      },
+      {
+        "name": "editorialDate",
+        "displayName": "Bijwerkdatum",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "date",
+        "settings": null,
+        "value": null
+      },
+      {
+        "name": "contributor",
+        "displayName": "Hoofdredacteur",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/8/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": false
+        },
+        "value": "[]"
+      },
+      {
+        "name": "add-legalArea",
+        "displayName": "Extra rechtsgebied(en)",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/2/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[]"
+      },
+      {
+        "name": "dc-keyword",
+        "displayName": "Trefwoorden (max 4)",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "multipleStringValue",
+        "settings": null,
+        "value": "[]"
+      },
+      {
+        "name": "language",
+        "displayName": "Taal",
+        "required": true,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/39/items",
+          "multipleSelectList": false,
+          "hierarchicalValueList": null
+        },
+        "value": "3216"
+      },
+      {
+        "name": "documentKey",
+        "displayName": "Document Key (NIET AANPASSEN)",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": ""
+      }
+    ]
+  },
+  {
+    "displayName": "Rechtsthema (voormalig CAT-commentaren)",
+    "metadataFields": [
+      {
+        "name": "rechtsthema",
+        "displayName": "Rechtsthema",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/51/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[]"
+      }
+    ]
+  }
+]

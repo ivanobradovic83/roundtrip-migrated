@@ -1,0 +1,24 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "legalArea",
+        "displayName": "Rechtsgebied(en)",
+        "required": true,
+        "canEdit": true,
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/2/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": null
+        },
+        "value": "[3804]"
+      }
+    ]
+  }
+]

@@ -5,8 +5,8 @@ import helpers.ScalaSpec
 import helpers.TestUtils.mockedJsonResp
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, verify, when}
-import service.authormapper.cache.ValueListCache
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
+import service.common.cache.ValueListCache
 import util.PublishOneConstants._
 
 import scala.concurrent.duration.DurationInt

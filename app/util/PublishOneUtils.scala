@@ -1,8 +1,8 @@
 package util
 
 import play.api.libs.json.{JsValue, Json, Reads}
-import service.authormapper.model.{AuthorDocument, AuthorFolder}
 import PublishOneConstants._
+import service.authormapper.model.{AuthorDocument, AuthorFolder}
 
 object PublishOneUtils {
 

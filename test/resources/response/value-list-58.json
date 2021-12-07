@@ -10,5 +10,15 @@
     "parentKey": null,
     "id": 6442,
     "name": "Arbeidsrechtartikelsgewijs"
+  },
+  {
+    "parentKey": null,
+    "id": 6446,
+    "name": "empty1"
+  },
+  {
+    "key": "test",
+    "parentKey": null,
+    "name": "empty2"
   }
 ]

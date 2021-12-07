@@ -10,9 +10,11 @@ import scala.util.{Try, Using}
 object TestUtils {
 
   def mockedJsonResp(fileName: String): Future[JsValue] = Future {
-    val filePath = s"test/resources/$fileName.json"
+    val filePath = s"test/resources/response/$fileName.json"
     val tryString: Try[String] = Using(Source.fromFile(filePath))(_.mkString)
     Json.parse(tryString.getOrElse(""))
   }
+
+  def emptyJson: Future[JsValue] = Future.successful(Json.parse("{}"))
 
 }

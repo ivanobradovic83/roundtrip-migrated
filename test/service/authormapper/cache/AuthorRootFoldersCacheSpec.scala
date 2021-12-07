@@ -32,10 +32,10 @@ class AuthorRootFoldersCacheSpec extends ScalaSpec {
 
   "when cache initialized it should contain valid data" in {
     mockData
+
     Await.result(cut.initCache, 10.seconds)
 
-    cut.rootFoldersCache should have size 6
-    cut.rootFoldersCache should contain allOf ("a" -> 43023, "b" -> 43024, "z" -> 43033, "aa" -> 43026, "ab" -> 43027, "zo" -> 44094)
+    cut.rootFoldersCache should contain only ("a" -> 43023, "b" -> 43024, "z" -> 43033, "aa" -> 43026, "ab" -> 43027, "zo" -> 44094)
 
     cut.cleanCache()
     cut.rootFoldersCache should be(empty)

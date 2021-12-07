@@ -2,15 +2,9 @@ package util
 
 object PublishOneConstants {
 
-  val publicationProfileOnlineZip = "14-publishone-customxml-87"
-
   val authorRoleId = "0628f370-937c-45d7-a2fd-08dc88c325fd"
-  val documentStateCreated = 176
-  val documentStateWrite = 177
-  val documentStatePublish = 182
 
   val documentTypeAuthor = "auteursbeschrijvingen"
-  val documentTypeCommenter = "commentaar"
   val documentTypePathPrefix = "/api/documenttypes"
 
   val listItemsFamilyNamePrefix = "familyNamePrefix"
@@ -43,4 +37,9 @@ object PublishOneConstants {
 object NodeTypes extends Enumeration {
   type NodeType = Value
   val Document, Folder = Value
+}
+
+object RoundTripActions extends Enumeration {
+  type RoundTripAction = Value
+  val ImportOnly, RoundTrip = Value
 }
