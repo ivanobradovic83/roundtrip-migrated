@@ -18,15 +18,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
   *
   * @param nodeApi PublishOne Node API
   * @param metadataApi PublishOne Metadata API
-  * @param publishOneCache PublishOne cache
+  * @param valueListCache PublishOne cache
   */
-class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, publishOneCache: ValueListCache) {
+class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, valueListCache: ValueListCache) {
 
   private lazy val log = Logger(getClass)
 
   def map(author: Author, folder: AuthorFolder): Future[Option[AuthorDocument]] = {
     log.info(s"$author $folder Mapping author document ...")
-    val publicationId = publishOneCache.mapValueListItemId(listItemsPublicationName, author.publicationName)
+    val publicationId = valueListCache.mapValueListItemId(listItemsPublicationName, author.publicationName)
     for {
       authorDocuments <- getAuthorDocuments(folder.id)
       authorDocument <- mapAuthorsToDocuments(author, publicationId, authorDocuments)

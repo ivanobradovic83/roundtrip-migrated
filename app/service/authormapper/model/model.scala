@@ -2,16 +2,25 @@ package service.authormapper.model
 
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, Reads}
+import util.CreationStatus
+import util.CreationStatus.CreationStatus
 
-case class AuthorFolder(id: Int, title: String, var authorItemId: String = null)
+case class AuthorFolder(folderStatus: CreationStatus, id: Int, title: String, authorItemStatus: CreationStatus, var authorItemId: String = null)
 
 object AuthorFolder {
   lazy implicit val authorFolderReads: Reads[AuthorFolder] = (
-    (JsPath \ "id").read[Int] and (JsPath \ "title").read[String] and Reads.pure("")
+    Reads.pure(CreationStatus.Existing) and (JsPath \ "id").read[Int] and (JsPath \ "title")
+      .read[String] and Reads.pure(CreationStatus.Existing) and Reads.pure("")
   )(AuthorFolder.apply _)
 }
 
-case class AuthorDocument(id: Int, title: String)
+case class AuthorDocument(status: CreationStatus, id: Int, title: String)
+
+object AuthorDocument {
+  lazy implicit val authorDocumentReads: Reads[AuthorDocument] = (
+    Reads.pure(CreationStatus.Existing) and (JsPath \ "id").read[Int] and (JsPath \ "title").read[String]
+  )(AuthorDocument.apply _)
+}
 
 case class Author(identifier: String,
                   name: String,

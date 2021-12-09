@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": 45105,
+      "title": "Zondag, W.A. (Commentaren)",
+      "isLocked": false,
+      "hasChildren": false,
+      "numberOfChildren": 0,
+      "canEdit": true,
+      "nodeType": "document",
+      "documentTypePath": "/api/documenttypes/auteursbeschrijvingen",
+      "lastModified": "2021-12-07T12:50:32.3336796+00:00",
+      "deadline": null,
+      "documentStatePath": "/api/workflowstates/34",
+      "parentId": 45103,
+      "containsDocuments": false,
+      "lockedByUserName": null,
+      "lockedAt": null,
+      "canDelete": true,
+      "canUpdateMetadata": true,
+      "canEditContent": true
+    }
+  ],
+  "total": 1
+}

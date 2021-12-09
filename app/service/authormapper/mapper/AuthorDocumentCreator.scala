@@ -5,6 +5,7 @@ import play.api.Logger
 import play.api.libs.json.JsValue
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import service.common.cache.ValueListCache
+import util.CreationStatus
 import util.PublishOneConstants.{documentTypeAuthor, _}
 
 import javax.inject.Inject
@@ -53,7 +54,7 @@ class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, valueListCache: 
   private def respToAuthorDocument(resp: JsValue) = {
     val id = (resp \ "id").as[Int]
     val name = (resp \ "title").as[String]
-    AuthorDocument(id, name)
+    AuthorDocument(CreationStatus.New, id, name)
   }
 
 }

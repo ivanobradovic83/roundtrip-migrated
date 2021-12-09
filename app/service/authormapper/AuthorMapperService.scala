@@ -121,9 +121,12 @@ class AuthorMapperService @Inject()(inProgressHandler: InProgressHandler,
           "gender",
           "publicationName",
           "sws document",
+          "folder status",
           "folder id",
           "folder title",
+          "author item status",
           "author item id",
+          "document status",
           "document id",
           "document title"
         )))

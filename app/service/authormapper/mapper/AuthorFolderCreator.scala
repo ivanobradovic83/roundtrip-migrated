@@ -6,6 +6,7 @@ import play.api.libs.json.JsValue
 import service.authormapper.cache.AuthorRootFoldersCache
 import service.authormapper.model.{Author, AuthorFolder}
 import service.common.cache.ValueListCache
+import util.CreationStatus
 import util.PublishOneConstants.{documentTypeAuthor, _}
 import util.StringUtils._
 
@@ -71,7 +72,7 @@ class AuthorFolderCreator @Inject()(folderApi: FolderApi,
     } yield {
       val id = (resp \ "id").as[Int]
       val name = (resp \ "name").as[String]
-      AuthorFolder(id, name, authorItemId)
+      AuthorFolder(CreationStatus.New, id, name, CreationStatus.New, authorItemId)
     }
 
   private def buildFolderName(author: Author): Future[String] = Future {

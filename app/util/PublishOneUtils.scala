@@ -6,8 +6,6 @@ import service.authormapper.model.{AuthorDocument, AuthorFolder}
 
 object PublishOneUtils {
 
-  private lazy implicit val authorDocumentReads: Reads[AuthorDocument] = Json.reads[AuthorDocument]
-
   def responseToAuthorFolders(resp: JsValue): Seq[AuthorFolder] =
     resp.as[Seq[JsValue]].filter(isAuthorFolder).map(Json.fromJson[AuthorFolder](_).get)
 

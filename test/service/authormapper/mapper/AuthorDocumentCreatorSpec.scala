@@ -7,6 +7,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, verify, when}
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import service.common.cache.ValueListCache
+import util.CreationStatus
 import util.PublishOneConstants._
 
 import scala.concurrent.duration.DurationInt
@@ -15,8 +16,8 @@ import scala.concurrent.{Await, Future}
 class AuthorDocumentCreatorSpec extends ScalaSpec {
 
   lazy val author: Author = Author("J133", "E.S. de Jong", "Jong", "Eva", "E.S.", "de", "mr.", "f", "c-ar", "c-AR-W3936-610")
-  lazy val folder: AuthorFolder = AuthorFolder(44462, "Jong E.S. de", "8857")
-  lazy val document: AuthorDocument = AuthorDocument(1234, "Document title")
+  lazy val folder: AuthorFolder = AuthorFolder(CreationStatus.New, 44462, "Jong E.S. de", CreationStatus.New, "8857")
+  lazy val document: AuthorDocument = AuthorDocument(CreationStatus.New, 1234, "Document title")
   lazy val documentId = 1234
   lazy val documentTitle = "Document title"
   lazy val documentContent: String =

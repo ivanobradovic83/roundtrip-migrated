@@ -43,3 +43,8 @@ object RoundTripActions extends Enumeration {
   type RoundTripAction = Value
   val ImportOnly, RoundTrip = Value
 }
+
+object CreationStatus extends Enumeration {
+  type CreationStatus = Value
+  val New, Existing = Value
+}
