@@ -18,9 +18,9 @@ import scala.concurrent.Future
 class AuthorDocumentMapper @Inject()(configUtils: ConfigUtils) {
 
   private lazy val swsAuthorIdIndex: Int = 0
-  private lazy val p1AuthorDocIdIndex: Int = 15
-  private lazy val p1AuthorDocNameIndex: Int = 16
-  private lazy val p1AuthorItemIdIndex: Int = 13
+  private lazy val p1AuthorDocIdIndex: Int = 16
+  private lazy val p1AuthorDocNameIndex: Int = 17
+  private lazy val p1AuthorItemIdIndex: Int = 14
   protected[metadata] lazy val authorDocumentMappingCache: TrieMap[String, AuthorDocumentMapping] = new TrieMap[String, AuthorDocumentMapping]()
 
   def initCache: Future[Unit] = Future {
