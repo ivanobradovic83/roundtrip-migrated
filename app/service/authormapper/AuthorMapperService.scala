@@ -12,7 +12,7 @@ import service.authormapper.mapper.{AuthorDocumentCreator, AuthorDocumentMapper,
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import service.common.cache.ValueListCache
 import service.common.monithoring.InProgressHandler
-import util.NodeTypes
+import util.{ConfigUtils, NodeTypes}
 import util.PublishOneConstants.documentTypeAuthor
 
 import java.io.{ByteArrayInputStream, PrintWriter, StringWriter}
@@ -36,7 +36,8 @@ import javax.inject.Inject
   * @param authorDocumentCreator PublishOne author document creator
   * @param valueListCache PublishOne cache
   */
-class AuthorMapperService @Inject()(inProgressHandler: InProgressHandler,
+class AuthorMapperService @Inject()(configUtils: ConfigUtils,
+                                    inProgressHandler: InProgressHandler,
                                     swsSourceApi: SwsSourceApi,
                                     swsApi: SwsApi,
                                     accessTokenHandler: AccessTokenHandler,
@@ -101,7 +102,7 @@ class AuthorMapperService @Inject()(inProgressHandler: InProgressHandler,
   }
 
   private def initCsvFile(): Path = {
-    val file = Paths.get("author-mapping.csv")
+    val file = Paths.get(configUtils.publishOneAuthorMappingFile)
     writeCsvHeader(file)
     file
   }

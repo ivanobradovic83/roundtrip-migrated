@@ -1,12 +1,20 @@
 package controllers.validation
 
 import service.common.monithoring.InProgressHandler
-import views.alerts.{Alert, Warning}
+import util.ConfigUtils
+import views.alerts.{Alert, Danger, Warning}
 
-object ControllerValidation {
+import java.io.File
+import javax.inject.{Inject, Singleton}
+
+@Singleton
+class ControllerValidation @Inject()(configUtils: ConfigUtils, inProgressHandler: InProgressHandler) {
 
   def validateQueryAndProcessInProgress(query: String): Seq[Alert] =
     filterExistingAlerts(validateQuery(query), validateProcessInProgress())
+
+  def validateAuthorMappingFileExistAndProcessInProgress(): Seq[Alert] =
+    filterExistingAlerts(validateAuthorMappingFileExist(), validateProcessInProgress())
 
   def validateQuery(query: String): Option[Alert] = query match {
     case ""                          => Option(Warning("Query", "Query cannot be empty!"))
@@ -15,12 +23,14 @@ object ControllerValidation {
     case _                           => None
   }
 
-//  def validateProcessInProgress(): Option[Alert] = InProgressHandler.getProcessInProgress match {
-//    case Some(processInProgressName) => Option(Warning("Warning", s"Process $processInProgressName is already in progress!"))
-//    case _                           => None
-//  }
+  def validateProcessInProgress(): Option[Alert] = inProgressHandler.getProcessInProgress match {
+    case Some(processInProgressName) => Option(Warning("Warning", s"Process $processInProgressName is already in progress!"))
+    case _                           => None
+  }
 
-  def validateProcessInProgress(): Option[Alert] = None
+  def validateAuthorMappingFileExist(): Option[Alert] =
+    if (new File(configUtils.publishOneAuthorMappingFile).exists()) None
+    else Option(Danger("Error", s"File ${configUtils.publishOneAuthorMappingFile} does not exist!"))
 
   def filterExistingAlerts(alerts: Option[Alert]*): Seq[Alert] = alerts.filter(_.isDefined).flatten
 

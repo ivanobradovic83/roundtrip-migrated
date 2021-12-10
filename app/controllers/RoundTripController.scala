@@ -1,11 +1,11 @@
 package controllers
 
-import controllers.validation.ControllerValidation._
+import controllers.validation.ControllerValidation
 import dto.RoundTripDto
 import org.webjars.play.WebJarsUtil
-import play.api.data.{Form, FormError}
 import play.api.data.Forms.{of, text, tuple}
 import play.api.data.format.Formatter
+import play.api.data.{Form, FormError}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
 import service.roundtrip.RoundTripService
@@ -19,8 +19,10 @@ import javax.inject.Inject
 /**
   * Controller which handles round-trip by query feature
   */
-class RoundTripController @Inject()(config: Configuration, cc: ControllerComponents, roundTripService: RoundTripService)(
-    implicit webJarsUtil: WebJarsUtil)
+class RoundTripController @Inject()(config: Configuration,
+                                    cc: ControllerComponents,
+                                    controllerValidation: ControllerValidation,
+                                    roundTripService: RoundTripService)(implicit webJarsUtil: WebJarsUtil)
     extends AbstractController(cc) {
 
   lazy val environment: String = config.get[String]("cwc.environment")
@@ -69,7 +71,8 @@ class RoundTripController @Inject()(config: Configuration, cc: ControllerCompone
     BadRequest(views.html.index(environment, swsBaseUrl, defaultContentVersion, validationAlerts))
 
   def validateRoundTrip(query: String, destination: String): Seq[Alert] =
-    validateQueryAndProcessInProgress(query) ++ filterExistingAlerts(validateDestinationAtPublishOne(destination))
+    controllerValidation.validateQueryAndProcessInProgress(query) ++ controllerValidation.filterExistingAlerts(
+      validateDestinationAtPublishOne(destination))
 
   private def validateDestinationAtPublishOne(destination: String): Option[Alert] = {
     // p1Client.getFolder(destination)

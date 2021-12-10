@@ -1,12 +1,13 @@
 package controllers
 
+import controllers.validation.ControllerValidation
 import org.webjars.play.WebJarsUtil
 import play.api.data.Forms._
 import play.api.data._
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
 import service.authormapper.AuthorMapperService
-import controllers.validation.ControllerValidation._
+import util.ConfigUtils
 import views.alerts.{Alert, Success => SucessAlert}
 
 import java.io.File
@@ -16,8 +17,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Controller which handles author mappings feature
   */
-class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComponents, authorMapperService: AuthorMapperService)(
-    implicit webJarsUtil: WebJarsUtil)
+class AuthorMapperController @Inject()(config: Configuration,
+                                       configUtils: ConfigUtils,
+                                       cc: ControllerComponents,
+                                       controllerValidation: ControllerValidation,
+                                       authorMapperService: AuthorMapperService)(implicit webJarsUtil: WebJarsUtil)
     extends AbstractController(cc) {
 
   lazy val environment: String = config.get[String]("cwc.environment")
@@ -37,16 +41,16 @@ class AuthorMapperController @Inject()(config: Configuration, cc: ControllerComp
 
   def map: Action[Map[String, Seq[String]]] = Action(parse.formUrlEncoded) { implicit request =>
     val (query, createMissingDocuments) = mapAuthorsForm.bindFromRequest().get
-    validateQueryAndProcessInProgress(query) match {
+    controllerValidation.validateQueryAndProcessInProgress(query) match {
       case alerts if alerts.nonEmpty => badRequestResponse(alerts)
       case _                         => startMapper(query, createMissingDocuments)
     }
   }
 
   def downloadMapping: Action[AnyContent] = Action {
-    validateProcessInProgress() match {
-      case Some(alert) => badRequestResponse(Seq(alert))
-      case _           => Ok.sendFile(content = new File("./author-mapping.csv"), fileName = _ => Some("author-mapping.csv"))
+    controllerValidation.validateAuthorMappingFileExistAndProcessInProgress() match {
+      case alerts if alerts.nonEmpty => badRequestResponse(alerts)
+      case _                         => Ok.sendFile(content = new File(configUtils.publishOneAuthorMappingFile), fileName = _ => Some("author-mapping.csv"))
     }
   }
 
