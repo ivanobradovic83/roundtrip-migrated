@@ -11,6 +11,7 @@ import components.sws.{SwsApi, SwsSourceApi}
 import dto.RoundTripDto
 import play.api.Logger
 import service.common.cache.ValueListCache
+import service.common.logging.LoggingService
 import service.common.monithoring.InProgressHandler
 import service.roundtrip.metadata.{AuthorDocumentMapper, MetadataMapper}
 import service.roundtrip.model.{ImportedDocument, RoundTripDocument}
@@ -35,6 +36,7 @@ import scala.util.{Failure, Success, Try}
   * @param publishOnePublisher PublishOne document publisher
   */
 class RoundTripService @Inject()(configUtils: ConfigUtils,
+                                 loggingService: LoggingService,
                                  inProgressHandler: InProgressHandler,
                                  accessTokenHandler: AccessTokenHandler,
                                  valueListCache: ValueListCache,
@@ -54,6 +56,7 @@ class RoundTripService @Inject()(configUtils: ConfigUtils,
 
   def roundTrip(roundTripDto: RoundTripDto): Future[Done] = {
     log.info(s"$roundTripDto started")
+
     val start = System.currentTimeMillis()
     initRoundTrip(roundTripDto.docType)
       .flatMap(_ => runRoundTripFlow(roundTripDto))
@@ -121,19 +124,34 @@ class RoundTripService @Inject()(configUtils: ConfigUtils,
       case (roundTripDoc, publishOneDocumentXml, folderMetadata, docMetadata) =>
         publishOneImporter
           .importDocument(roundTripDoc, publishOneDocumentXml, folderMetadata, docMetadata)
-          .map((roundTripDoc, _))
+          .map({
+            loggingService.logEvent("P1_IMPORT", 0, roundTripDoc.docKey, success = true, "Document successfully imported to PublishOne")
+            (roundTripDoc, _)
+          })
           .recover(recover(roundTripDoc, "importDocumentToPublishOneFlow"))
     }
 
   private lazy val republishDocumentFlow: Flow[(RoundTripDocument, ImportedDocument), Unit, _] =
     Flow[(RoundTripDocument, ImportedDocument)].mapAsyncUnordered(configUtils.parallelism) {
       case (roundTripDoc, importedDocument) =>
-        publishOnePublisher.publish(roundTripDoc, importedDocument).recover(recover(roundTripDoc, "republishDocumentFlow"))
+        publishOnePublisher
+          .publish(roundTripDoc, importedDocument)
+          .map(res => {
+            loggingService.logEvent("ROUNDTRIP", 0, roundTripDoc.docKey, success = true, "Document successfully published")
+            res
+          })
+          .recover(recover(roundTripDoc, "republishDocumentFlow"))
     }
 
   private def recover[T](roundTripDoc: RoundTripDocument, flowInfo: String): PartialFunction[Throwable, T] = {
     case e: Throwable =>
       log.error(s"$roundTripDoc $flowInfo: ${e.getMessage}")
+      flowInfo match {
+        case "importDocumentToPublishOneFlow" =>
+          loggingService.logEvent("P1_IMPORT", 0, roundTripDoc.docKey, success = false, s"Document import failed: ${e.getMessage}")
+        case _ =>
+          loggingService.logEvent("ROUNDTRIP", 0, roundTripDoc.docKey, success = false, s"Republishing document failed: ${e.getMessage}")
+      }
       throw e
   }
 
@@ -141,8 +159,10 @@ class RoundTripService @Inject()(configUtils: ConfigUtils,
     closeRoundTripProcess()
     val duration = (System.currentTimeMillis() - start) / 1000
     result match {
-      case Failure(exception) => log.error(s"$roundTripDto failed", exception)
-      case Success(_)         => log.info(s"$roundTripDto done successfully in $duration s")
+      case Failure(exception) =>
+        log.error(s"$roundTripDto failed", exception)
+      case Success(_) =>
+        log.info(s"$roundTripDto done successfully in $duration s")
     }
   }
 

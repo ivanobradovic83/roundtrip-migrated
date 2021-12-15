@@ -10,6 +10,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.verification.VerificationMode
 import service.common.cache.ValueListCache
+import service.common.logging.LoggingService
 import service.common.monithoring.InProgressHandler
 import service.roundtrip.metadata.{AuthorDocumentMapper, MetadataMapper}
 import service.roundtrip.model.{ImportedDocument, RoundTripDocument}
@@ -42,6 +43,7 @@ class RoundTripServiceSpec extends ScalaSpec {
   lazy val importedDoc2: ImportedDocument = ImportedDocument(321, "Folder title 2", Seq(789))
 
   val configUtils: ConfigUtils = mock[ConfigUtils]
+  val loggingService: LoggingService = mock[LoggingService]
   val inProgressHandler: InProgressHandler = mock[InProgressHandler]
   val accessTokenHandler: AccessTokenHandler = mock[AccessTokenHandler]
   val valueListCache: ValueListCache = mock[ValueListCache]
@@ -55,6 +57,7 @@ class RoundTripServiceSpec extends ScalaSpec {
 
   val cut = new RoundTripService(
     configUtils,
+    loggingService,
     inProgressHandler,
     accessTokenHandler,
     valueListCache,
