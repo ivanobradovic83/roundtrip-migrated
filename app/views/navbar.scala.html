@@ -10,9 +10,6 @@
         <li @if(pageName=="home"){ class="nav-item active"} else { class="nav-item"}>
           <a class="nav-link" href="@routes.RoundTripController.index()">SWS query round-trip</a>
         </li>
-        <li @if(pageName=="bulk"){ class="nav-item active"} else { class="nav-item"}>
-          <a class="nav-link" href="@routes.Application.uploadFile()">Bulk round-trip</a>
-        </li>
         <li @if(pageName=="mapAuthors"){ class="nav-item active"} else { class="nav-item"}>
           <a class="nav-link" href="@routes.AuthorMapperController.index()">Map authors</a>
         </li>
