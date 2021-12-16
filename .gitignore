@@ -10,3 +10,4 @@ target
 /conf/custom.conf
 *.xpr
 conf/custom
+/.github/internal

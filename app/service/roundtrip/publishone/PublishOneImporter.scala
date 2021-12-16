@@ -12,25 +12,27 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class imports document to PublishOne by executing next steps:
-  *  <pre>
-  * - create PublishOne folder where imported document will be placed
-  * - create PublishOne document with metadata
-  * - set given XML content to the document
-  * </pre>
-  * @param folderApi PublishOne Folder API
-  * @param documentApi PublishOne Document API
-  * @param nodeOpsApi PublishOne NodeOperation API
+/** This class imports document to PublishOne by executing next steps: <pre>
+  *   - create PublishOne folder where imported document will be placed
+  *   - create PublishOne document with metadata
+  *   - set given XML content to the document </pre>
+  * @param folderApi
+  *   PublishOne Folder API
+  * @param documentApi
+  *   PublishOne Document API
+  * @param nodeOpsApi
+  *   PublishOne NodeOperation API
   */
 class PublishOneImporter @Inject()(folderApi: FolderApi, documentApi: DocumentApi, nodeOpsApi: NodeOperationApi, linkApi: LinkApi) {
 
   private lazy val log = Logger(getClass)
 
-  def importDocument(roundTripDoc: RoundTripDocument,
-                     docContent: Array[Byte],
-                     folderMetadata: Map[String, AnyRef],
-                     docMetadata: Map[String, AnyRef]): Future[ImportedDocument] = {
+  def importDocument(
+      roundTripDoc: RoundTripDocument,
+      docContent: Array[Byte],
+      folderMetadata: Map[String, AnyRef],
+      docMetadata: Map[String, AnyRef]
+  ): Future[ImportedDocument] = {
     log.info(s"$roundTripDoc Importing CWC document to PublishOne")
     for {
       folderId <- createFolder(roundTripDoc, folderMetadata)

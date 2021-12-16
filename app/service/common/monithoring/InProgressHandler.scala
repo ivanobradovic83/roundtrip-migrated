@@ -2,12 +2,10 @@ package service.common.monithoring
 
 import javax.inject.{Inject, Singleton}
 
-/**
-  * This class handles process in progress status. Only one process can be started at the time
-  * (regardless if it is Round-trip or Authors mapping process)
+/** This class handles process in progress status. Only one process can be started at the time (regardless if it is Round-trip or Authors mapping
+  * process)
   *
-  * Whenever a process is started it has to invoke startProcess()
-  * and when it is ended it has to invoke stopProcess()
+  * Whenever a process is started it has to invoke startProcess() and when it is ended it has to invoke stopProcess()
   */
 @Singleton
 class InProgressHandler @Inject()() {

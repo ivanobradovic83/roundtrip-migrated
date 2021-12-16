@@ -1,0 +1,42 @@
+name: Release prod
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ci-job:
+    name: CI job
+    runs-on: sduoneplatform
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+
+      - name: Clone source code
+        uses: actions/checkout@v2
+
+      - name: Load project configuration
+        uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: config/project.yml
+
+      - name: Check out sdu-devops
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.sdu-devops-repository }}
+          ssh-key: ${{ secrets.SDU_DEVOPS_PRIVATE_DEPLOY_KEY }}
+          ref: ${{ env.sdu-devops-branch }}
+          path: .github/internal/sdu-devops
+
+      - name: Run release production action
+        uses: ./.github/internal/sdu-devops/github-actions/release-prod-action
+        with:
+          aws-access-key-id: ${{ secrets['SDUUITGEVERS_AWS_ACCESS_KEY_ID'] }}
+          aws-access-key-id-secret: ${{ secrets['SDUUITGEVERS_AWS_SECRET_ACCESS_KEY'] }}
+          ecr-aws-account-id: ${{ env.ecr-aws-account-id }}
+          ecr-repository: ${{ env.ecr-repository }}
+          eks-deploy-deployments: ${{ env.eks-deploy-deployments }}
+          eks-deploy-cluster: "prod-cwc"
+          eks-deploy-namespace: "cwc-prod"
+          eks-deploy-aws-account-id: "483106337872"
+#          deploy-no-aws-at: true

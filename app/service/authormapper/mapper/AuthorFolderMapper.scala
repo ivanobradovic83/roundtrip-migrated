@@ -13,10 +13,10 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * Tries to map given author (collected from SWS document metadata) to PublishOne author folder
+/** Tries to map given author (collected from SWS document metadata) to PublishOne author folder
   *
-  * @param nodeApi PublishOne Node API
+  * @param nodeApi
+  *   PublishOne Node API
   */
 class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
 
@@ -61,10 +61,12 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
   }
 
   @tailrec
-  private def applyFilters(author: Author,
-                           folder: AuthorFolder,
-                           folderMetadata: FolderMetadata,
-                           filters: Seq[MappingFilter]): Option[AuthorFolder] = {
+  private def applyFilters(
+      author: Author,
+      folder: AuthorFolder,
+      folderMetadata: FolderMetadata,
+      filters: Seq[MappingFilter]
+  ): Option[AuthorFolder] = {
     filters.head.apply(author, folderMetadata) match {
       case true                       => Option(folder)
       case false if filters.size == 1 => Option.empty
@@ -73,8 +75,10 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
   }
 
   private def filterByFamilyGivenNameInitials(author: Author, folderMetadata: FolderMetadata) =
-    compare(folderMetadata.familyName, author.familyName) && compare(folderMetadata.givenName, author.givenName) && compare(folderMetadata.initials,
-                                                                                                                            author.initials)
+    compare(folderMetadata.familyName, author.familyName) && compare(folderMetadata.givenName, author.givenName) && compare(
+      folderMetadata.initials,
+      author.initials
+    )
 
   private def filterByFamilyGivenName(author: Author, folderMetadata: FolderMetadata) =
     compare(folderMetadata.familyName, author.familyName) && compare(folderMetadata.givenName, author.givenName)

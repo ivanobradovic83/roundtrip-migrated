@@ -31,8 +31,10 @@ class PublishOneImporterSpec extends ScalaSpec {
   lazy val folderMetadata: Map[String, AnyRef] = Map("key11" -> "val11", "key12" -> new Date())
   lazy val docMetadata: Map[String, AnyRef] = Map(
     "key21" -> "val21",
-    listItemsAuthor -> Seq(AuthorDocumentMapping(authorDoc1Id, authorDoc1Title, authorDoc1ItemId),
-                           AuthorDocumentMapping(authorDoc2Id, authorDoc2Title, authorDoc2ItemId))
+    listItemsAuthor -> Seq(
+      AuthorDocumentMapping(authorDoc1Id, authorDoc1Title, authorDoc1ItemId),
+      AuthorDocumentMapping(authorDoc2Id, authorDoc2Title, authorDoc2ItemId)
+    )
   )
   lazy val folderMetadataString: Map[String, String] = Map("key11" -> "val11")
   lazy val docMetadataString: Map[String, String] = Map("key21" -> "val21", listItemsAuthor -> s"[$authorDoc1ItemId,$authorDoc2ItemId]")

@@ -23,31 +23,38 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import javax.inject.Inject
 
-/**
+/** This service creates and runs Akka streams flow which creates mapping file between author (from SWS document metadata) and PublishOne
+  * folder/document
   *
-  * This service creates and runs Akka streams flow which creates mapping file between
-  * author (from SWS document metadata) and PublishOne folder/document
-  *
-  * @param swsSourceApi Akka source from SWS query
-  * @param swsApi SWS API
-  * @param accessTokenHandler PublishOne access token handler
-  * @param authorFolderMapper PublishOne author folder mapper
-  * @param authorFolderCreator PublishOne author folder creator
-  * @param authorDocumentCreator PublishOne author document creator
-  * @param valueListCache PublishOne cache
+  * @param swsSourceApi
+  *   Akka source from SWS query
+  * @param swsApi
+  *   SWS API
+  * @param accessTokenHandler
+  *   PublishOne access token handler
+  * @param authorFolderMapper
+  *   PublishOne author folder mapper
+  * @param authorFolderCreator
+  *   PublishOne author folder creator
+  * @param authorDocumentCreator
+  *   PublishOne author document creator
+  * @param valueListCache
+  *   PublishOne cache
   */
-class AuthorMapperService @Inject()(configUtils: ConfigUtils,
-                                    inProgressHandler: InProgressHandler,
-                                    swsSourceApi: SwsSourceApi,
-                                    swsApi: SwsApi,
-                                    accessTokenHandler: AccessTokenHandler,
-                                    authorFolderMapper: AuthorFolderMapper,
-                                    authorFolderCreator: AuthorFolderCreator,
-                                    authorDocumentMapper: AuthorDocumentMapper,
-                                    authorDocumentCreator: AuthorDocumentCreator,
-                                    valueListCache: ValueListCache,
-                                    authorRootFoldersCache: AuthorRootFoldersCache,
-                                    authorListItemsCache: AuthorListItemsCache) {
+class AuthorMapperService @Inject()(
+    configUtils: ConfigUtils,
+    inProgressHandler: InProgressHandler,
+    swsSourceApi: SwsSourceApi,
+    swsApi: SwsApi,
+    accessTokenHandler: AccessTokenHandler,
+    authorFolderMapper: AuthorFolderMapper,
+    authorFolderCreator: AuthorFolderCreator,
+    authorDocumentMapper: AuthorDocumentMapper,
+    authorDocumentCreator: AuthorDocumentCreator,
+    valueListCache: ValueListCache,
+    authorRootFoldersCache: AuthorRootFoldersCache,
+    authorListItemsCache: AuthorListItemsCache
+) {
 
   type AuthorFolderDoc = (Author, Option[AuthorFolder], Option[AuthorDocument])
 
@@ -130,7 +137,9 @@ class AuthorMapperService @Inject()(configUtils: ConfigUtils,
           "document status",
           "document id",
           "document title"
-        )))
+        )
+      )
+    )
     outWriter.close()
   }
 
@@ -209,7 +218,8 @@ class AuthorMapperService @Inject()(configUtils: ConfigUtils,
       s"Mapping authors for SWS query done in $duration s" +
         s"\nTotal authors processed: ${mappedAuthorsCache.size}" +
         s"\nMapped author folders/documents count: $mappedFoldersCounter / $mappedDocumentsCounter" +
-        s"\nNon mapped authors count: $nonMappedAuthorsCount")
+        s"\nNon mapped authors count: $nonMappedAuthorsCount"
+    )
     clean()
     inProgressHandler.stopProcess(getClass.getSimpleName)
   }

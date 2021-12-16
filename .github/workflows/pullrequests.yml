@@ -1,0 +1,41 @@
+name: PR & master
+#description: Build and test pull requests or push to master
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  ci-job:
+    name: CI job
+
+    runs-on: sduoneplatform
+
+    steps:
+
+      - name: Clone source code
+        uses: actions/checkout@v2
+
+      - name: Load project configuration
+        uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: config/project.yml
+
+      - name: Check out sdu-devops
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.sdu-devops-repository }}
+          ssh-key: ${{ secrets.SDU_DEVOPS_PRIVATE_DEPLOY_KEY }}
+          ref: ${{ env.sdu-devops-branch }}
+          path: .github/internal/sdu-devops
+
+      - name: Run scala action
+        uses: ./.github/internal/sdu-devops/github-actions/scala-action
+        with:
+          sdu-devops-branch: ${{ env.sdu-devops-branch }}
+          sdu-devops-ssh-key: ${{ secrets['SDU_DEVOPS_PRIVATE_DEPLOY_KEY'] }}
+          artifactory-usr: ${{ secrets['ARTIFACTORY_USR'] }}
+          artifactory-psw: ${{ secrets['ARTIFACTORY_PSW'] }}
+          run-tests: true

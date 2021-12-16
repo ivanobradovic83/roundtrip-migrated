@@ -14,19 +14,24 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * Creates PublishOne folder which should contain author details
+/** Creates PublishOne folder which should contain author details
   *
-  * @param folderApi PublishOne Folder API
-  * @param nodeOperationApi PublishOne Node operation API
-  * @param valueListCache PublishOne value list items cache
-  * @param authorRootFoldersCache PublishOne author root folders cache
+  * @param folderApi
+  *   PublishOne Folder API
+  * @param nodeOperationApi
+  *   PublishOne Node operation API
+  * @param valueListCache
+  *   PublishOne value list items cache
+  * @param authorRootFoldersCache
+  *   PublishOne author root folders cache
   */
-class AuthorFolderCreator @Inject()(folderApi: FolderApi,
-                                    nodeOperationApi: NodeOperationApi,
-                                    valueListCache: ValueListCache,
-                                    authorRootFoldersCache: AuthorRootFoldersCache,
-                                    authorListItemsHandler: AuthorListItemsHandler) {
+class AuthorFolderCreator @Inject()(
+    folderApi: FolderApi,
+    nodeOperationApi: NodeOperationApi,
+    valueListCache: ValueListCache,
+    authorRootFoldersCache: AuthorRootFoldersCache,
+    authorListItemsHandler: AuthorListItemsHandler
+) {
 
   private lazy val log = Logger(getClass)
 

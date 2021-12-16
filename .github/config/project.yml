@@ -1,0 +1,10 @@
+# AWS Account ID where the ECR repository resides
+ecr-aws-account-id: 117533191630
+# Name of the ECR repository (without the hostname part) to publish docker images to
+ecr-repository: sdu/sdu-cwc-roundtrip-publishone
+# List of names of the k8s Deployment to execute a rollout restart on, separated with ';'
+eks-deploy-deployments: sdu-cwc-roundtrip-publishone
+# sdu-devops repository
+sdu-devops-repository: elseu/sdu-devops
+# sdu-devops branch name used to pull GitHub action templates
+sdu-devops-branch: feature/CWC-4296

@@ -60,11 +60,13 @@ class SwsSourceApi @Inject()(val config: Configuration, wsClient: WSClient) {
           case _  => Left(s"While fetching $url: HTTP status: ${response.statusText}")
         }
       }
-      .recoverWith({
-        case e: Exception =>
-          log.error(s"Unable to connect to $url. Reason: ${e.getMessage}", e)
-          Future.successful(Left(s"While fetching $url: Error: ${e.getMessage}"))
-      })
+      .recoverWith(
+        {
+          case e: Exception =>
+            log.error(s"Unable to connect to $url. Reason: ${e.getMessage}", e)
+            Future.successful(Left(s"While fetching $url: Error: ${e.getMessage}"))
+        }
+      )
   }
 
 }

@@ -18,16 +18,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.xml.Node
 
-/**
-  * This class maps given metadata in XML format to string values which will be used as Json values by executing next steps:
-  * <pre>
-  * - parse given metadataXml
-  * - traverse through all Xml metadata
-  * - maps values from XML to Json value
-  * - returns Map of Json metadata values which are ready to be used with PublishOne API
-  * </pre>
+/** This class maps given metadata in XML format to string values which will be used as Json values by executing next steps: <pre>
+  *   - parse given metadataXml
+  *   - traverse through all Xml metadata
+  *   - maps values from XML to Json value
+  *   - returns Map of Json metadata values which are ready to be used with PublishOne API </pre>
   *
-  * @param metadataApi PublishOne Metadata API
+  * @param metadataApi
+  *   PublishOne Metadata API
   */
 @Singleton
 class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: AuthorDocumentMapper, valueListCache: ValueListCache) {
@@ -37,7 +35,8 @@ class MetadataMapper @Inject()(metadataApi: MetadataApi, metadataAuthorMapper: A
 
   def initCache(types: Seq[(String, NodeType)]): Future[Any] =
     Future.sequence(types.map {
-      case (docType, nodeType) => loadMetadataDefinitionToCache(docType, nodeType)
+      case (docType, nodeType) =>
+        loadMetadataDefinitionToCache(docType, nodeType)
     })
 
   def cleanCache(): Unit = metadataDefCache.clear()

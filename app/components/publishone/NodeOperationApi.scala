@@ -10,12 +10,14 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * PublishOne NodeOperation API
+/** PublishOne NodeOperation API
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {
@@ -62,7 +64,8 @@ class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, a
       Json.obj(
         "selectedNodes" -> Seq(selectedNode),
         "assignments" -> Seq(authorAssignment)
-      ))
+      )
+    )
   }
 
   private def deleteNodeRequestBody(nodeId: Int, includeDescendants: Boolean) = {
@@ -108,7 +111,8 @@ class NodeOperationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, a
     } else {
       log.warn(
         s"Node operation ($id) state checked maximum number of attempts " +
-          s"($configUtils.checkOperationStateMaxAttempts) without detecting success state")
+          s"($configUtils.checkOperationStateMaxAttempts) without detecting success state"
+      )
       Future.successful(false)
     }
   }

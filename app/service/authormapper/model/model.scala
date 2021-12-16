@@ -22,16 +22,18 @@ object AuthorDocument {
   )(AuthorDocument.apply _)
 }
 
-case class Author(identifier: String,
-                  name: String,
-                  familyName: String,
-                  givenName: String,
-                  initials: String,
-                  familyNamePrefix: String,
-                  prefix: String,
-                  gender: String,
-                  publicationName: String,
-                  documentIdentifier: String)
+case class Author(
+    identifier: String,
+    name: String,
+    familyName: String,
+    givenName: String,
+    initials: String,
+    familyNamePrefix: String,
+    prefix: String,
+    gender: String,
+    publicationName: String,
+    documentIdentifier: String
+)
 
 object Author {
 

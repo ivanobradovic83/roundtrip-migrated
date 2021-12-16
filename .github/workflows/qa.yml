@@ -1,0 +1,53 @@
+name: Release functest
+#description: qa - build snapshot docker image (qa-latest) and deploy it to functest
+
+on:
+  push:
+    branches:
+      - qa
+
+jobs:
+  ci-job:
+    name: CI job
+    runs-on: sduoneplatform
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+
+      - name: Clone source code
+        uses: actions/checkout@v2
+
+      - name: Load project configuration
+        uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: config/project.yml
+
+      - name: Check out sdu-devops
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.sdu-devops-repository }}
+          ssh-key: ${{ secrets.SDU_DEVOPS_PRIVATE_DEPLOY_KEY }}
+          ref: ${{ env.sdu-devops-branch }}
+          path: .github/internal/sdu-devops
+
+      - name: Run scala action
+        uses: ./.github/internal/sdu-devops/github-actions/scala-action
+        with:
+          sdu-devops-branch: ${{ env.sdu-devops-branch }}
+          sdu-devops-ssh-key: ${{ secrets['SDU_DEVOPS_PRIVATE_DEPLOY_KEY'] }}
+          aws-access-key-id: ${{ secrets['SDUUITGEVERS_AWS_ACCESS_KEY_ID'] }}
+          aws-access-key-id-secret: ${{ secrets['SDUUITGEVERS_AWS_SECRET_ACCESS_KEY'] }}
+          artifactory-usr: ${{ secrets['ARTIFACTORY_USR'] }}
+          artifactory-psw: ${{ secrets['ARTIFACTORY_PSW'] }}
+          ecr-aws-account-id: ${{ env.ecr-aws-account-id }}
+          ecr-repository: ${{ env.ecr-repository }}
+          eks-deploy-deployments: ${{ env.eks-deploy-deployments }}
+          eks-deploy-cluster: "ota-cwc"
+          eks-deploy-namespace: "cwc-functest"
+          eks-deploy-aws-account-id: "723824856824"
+          run-tests: true
+          publish-docker-image: true
+          use-docker-tag-suffix: true
+          use-tag-prefix-with-project-version: false
+          deploy-no-aws-at: true

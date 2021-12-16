@@ -9,12 +9,14 @@ import util.PublishOneUtils._
 import javax.inject.Inject
 import scala.concurrent.Future
 
-/**
-  * PublishOne Links API
+/** PublishOne Links API
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 class LinkApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {

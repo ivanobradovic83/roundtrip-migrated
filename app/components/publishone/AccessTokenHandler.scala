@@ -8,13 +8,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class is used to handles Access Tokens for PublishOne API.
-  * It reads properties, used to ask for a token, from configuration file.
-  * Access Token is valid for an hour. If cached token is about to expire it will be reloaded.
+/** This class is used to handles Access Tokens for PublishOne API. It reads properties, used to ask for a token, from configuration file. Access
+  * Token is valid for an hour. If cached token is about to expire it will be reloaded.
   *
-  * @param configUtils configuration
-  * @param wsClient web client
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
   */
 @Singleton
 class AccessTokenHandler @Inject()(configUtils: ConfigUtils, wsClient: WSClient) {

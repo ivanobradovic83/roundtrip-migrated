@@ -16,13 +16,14 @@ import views.alerts.{Alert, Success => SucessAlert}
 import java.util.UUID
 import javax.inject.Inject
 
-/**
-  * Controller which handles round-trip by query feature
+/** Controller which handles round-trip by query feature
   */
-class RoundTripController @Inject()(config: Configuration,
-                                    cc: ControllerComponents,
-                                    controllerValidation: ControllerValidation,
-                                    roundTripService: RoundTripService)(implicit webJarsUtil: WebJarsUtil)
+class RoundTripController @Inject()(
+    config: Configuration,
+    cc: ControllerComponents,
+    controllerValidation: ControllerValidation,
+    roundTripService: RoundTripService
+)(implicit webJarsUtil: WebJarsUtil)
     extends AbstractController(cc) {
 
   lazy val environment: String = config.get[String]("cwc.environment")
@@ -48,7 +49,8 @@ class RoundTripController @Inject()(config: Configuration,
       "documentType" -> text,
       "destination" -> text,
       "action" -> of[RoundTripAction]
-    ))
+    )
+  )
 
   def index: Action[AnyContent] = Action {
     Ok(views.html.index(environment, swsBaseUrl, defaultContentVersion))
@@ -72,7 +74,8 @@ class RoundTripController @Inject()(config: Configuration,
 
   def validateRoundTrip(query: String, destination: String): Seq[Alert] =
     controllerValidation.validateQueryAndProcessInProgress(query) ++ controllerValidation.filterExistingAlerts(
-      validateDestinationAtPublishOne(destination))
+      validateDestinationAtPublishOne(destination)
+    )
 
   private def validateDestinationAtPublishOne(destination: String): Option[Alert] = {
     // p1Client.getFolder(destination)

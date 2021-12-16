@@ -9,13 +9,14 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * CWC SWS Api
+/** CWC SWS Api
   *
   * Contains methods to fetch document content or metadata.
   *
-  * @param config configuration
-  * @param wsClient web client
+  * @param config
+  *   configuration
+  * @param wsClient
+  *   web client
   */
 class SwsApi @Inject()(config: Configuration, wsClient: WSClient) {
 

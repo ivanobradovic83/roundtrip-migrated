@@ -12,11 +12,12 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * Creates document which should contain author details
+/** Creates document which should contain author details
   *
-  * @param documentApi PublishOne Document API
-  * @param valueListCache PublishOne cache
+  * @param documentApi
+  *   PublishOne Document API
+  * @param valueListCache
+  *   PublishOne cache
   */
 class AuthorDocumentCreator @Inject()(documentApi: DocumentApi, valueListCache: ValueListCache) {
 

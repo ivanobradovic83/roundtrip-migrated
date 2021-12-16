@@ -11,18 +11,17 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  *  This class publishes document from PublishOne to CWC by executing next steps:
-  *  <pre>
-  * - set Publiceren state to all documents in imported folder
-  * - create publication at PublishOne
-  * - download publication file after it's created
-  * - save publication to local file system (PoC implementation)
-  *   in production ready implementation publication file should be streamed from PublishOne to FTP server
-  * - delete publication from PublishOne
-  * </pre>
-  * @param publicationApi PublishOne Publication API
-  * @param nodeOpsApi PublishOne NodeOperation API
+/** This class publishes document from PublishOne to CWC by executing next steps: <pre>
+  *   - set Publiceren state to all documents in imported folder
+  *   - create publication at PublishOne
+  *   - download publication file after it's created
+  *   - save publication to local file system (PoC implementation) in production ready implementation publication file should be streamed from
+  *     PublishOne to FTP server
+  *   - delete publication from PublishOne </pre>
+  * @param publicationApi
+  *   PublishOne Publication API
+  * @param nodeOpsApi
+  *   PublishOne NodeOperation API
   */
 class PublishOnePublisher @Inject()(configUtils: ConfigUtils, publicationApi: PublicationApi, nodeOpsApi: NodeOperationApi) {
 

@@ -31,10 +31,12 @@ class ApplicationSpec extends SinglePlayAppWithMongoSuite with BeforeAndAfterAll
 
       status(result) mustEqual OK
       contentType(result) mustBe Some(MimeTypes.JSON)
-      contentAsJson(result) mustEqual Json.obj("name" -> "CWC Round-trip PublishOne",
-                                               "version" -> build.BuildInfo.version,
-                                               "operational" -> true,
-                                               "message" -> "Running")
+      contentAsJson(result) mustEqual Json.obj(
+        "name" -> "CWC Round-trip PublishOne",
+        "version" -> build.BuildInfo.version,
+        "operational" -> true,
+        "message" -> "Running"
+      )
     }
   }
 

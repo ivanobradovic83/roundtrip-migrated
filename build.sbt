@@ -67,7 +67,6 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  publishArtifacts,
   setNextVersion,
   commitNextVersion,
   pushChanges
@@ -96,22 +95,23 @@ makeDeploymentSettings(Debian, packageBin in Debian, "deb")
 publish in Debian := (publish in Debian).triggeredBy(publish in Compile).value
 
 // Docker
-dockerBaseImage := "117533191630.dkr.ecr.eu-west-1.amazonaws.com/upstream-fork/openjdk:8"
-dockerExposedPorts := Seq(9081)
+dockerBaseImage := "openjdk:8"
+dockerExposedPorts := Seq(9000)
 dockerExposedVolumes := Seq("/data/event-logs")
 dockerEntrypoint := Seq(
   "bin/sdu-cwc-roundtrip-publishone",
   "-Dconfig.file=/etc/sdu-cwc-roundtrip-publishone/startup.conf",
-  "-Dlogger.file=conf/docker-logger.xml",
-  "-Dhttp.port=9081"
+  "-Dlogger.file=conf/docker-logger.xml"
 )
 dockerRepository := Some("117533191630.dkr.ecr.eu-west-1.amazonaws.com")
-dockerUsername := Some("cwc")
-dockerUpdateLatest := false
 daemonUserUid in Docker := None
 daemonUser in Docker := "daemon"
-dockerEnvVars := Map("TZ" -> "Europe/Amsterdam")
+dockerUsername := Some("sdu")
 dockerPermissionStrategy := DockerPermissionStrategy.CopyChown
+dockerEnvVars := Map("TZ" -> "Europe/Amsterdam")
+
+// Code formatting
+scalafmtOnCompile in ThisBuild := true
 
 //Coverage report
 coverageExcludedPackages := """<empty>;Reverse.*;controllers;router.Routes.*;Application.*;build;views.html"""

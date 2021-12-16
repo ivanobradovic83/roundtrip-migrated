@@ -9,12 +9,14 @@ import util.PublishOneUtils.docTypePath
 import javax.inject.Inject
 import scala.concurrent.Future
 
-/**
-  * PublishOne Folder API
+/** PublishOne Folder API
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 class FolderApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {

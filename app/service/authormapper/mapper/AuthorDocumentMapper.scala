@@ -13,12 +13,14 @@ import javax.inject.Inject
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
-  * Tries to map given author to it's corresponding document in PublishOne author folder
+/** Tries to map given author to it's corresponding document in PublishOne author folder
   *
-  * @param nodeApi PublishOne Node API
-  * @param metadataApi PublishOne Metadata API
-  * @param valueListCache PublishOne cache
+  * @param nodeApi
+  *   PublishOne Node API
+  * @param metadataApi
+  *   PublishOne Metadata API
+  * @param valueListCache
+  *   PublishOne cache
   */
 class AuthorDocumentMapper @Inject()(nodeApi: NodeApi, metadataApi: MetadataApi, valueListCache: ValueListCache) {
 

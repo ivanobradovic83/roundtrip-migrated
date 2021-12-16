@@ -11,13 +11,14 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class caches PublishOne author root folders:
-  *  - 1st level folders (e.g. A,B,C...)
-  *  - 2nd level folders (e.g. Aa,Ab..,Ba,Bb...)
+/** This class caches PublishOne author root folders:
+  *   - 1st level folders (e.g. A,B,C...)
+  *   - 2nd level folders (e.g. Aa,Ab..,Ba,Bb...)
   *
-  * @param configUtils configuration
-  * @param nodeApi PublishOne Node API
+  * @param configUtils
+  *   configuration
+  * @param nodeApi
+  *   PublishOne Node API
   */
 @Singleton
 class AuthorRootFoldersCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi) {
@@ -40,12 +41,14 @@ class AuthorRootFoldersCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeAp
   private def getAllChildNodes(parentId: Int, pageNumber: Int = 1, pageSize: Int = 100): Future[Seq[AuthorFolder]] = {
     nodeApi
       .getChildNodes(parentId, pageNumber, pageSize)
-      .flatMap(response => {
-        val folders = responseToAuthorFolders((response \ "items").as[JsValue])
-        val totalResults = (response \ "total").as[Int]
-        if (totalResults > pageNumber * pageSize) getAllChildNodes(parentId, pageNumber + 1, pageSize).map(folders ++ _)
-        else Future.successful(folders)
-      })
+      .flatMap(
+        response => {
+          val folders = responseToAuthorFolders((response \ "items").as[JsValue])
+          val totalResults = (response \ "total").as[Int]
+          if (totalResults > pageNumber * pageSize) getAllChildNodes(parentId, pageNumber + 1, pageSize).map(folders ++ _)
+          else Future.successful(folders)
+        }
+      )
   }
 
 }

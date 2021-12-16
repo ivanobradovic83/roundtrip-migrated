@@ -13,11 +13,12 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class caches PublishOne list items metadata for given document and node types.
+/** This class caches PublishOne list items metadata for given document and node types.
   *
-  * @param configUtils configuration
-  * @param metadataApi PublishOne Metadata API
+  * @param configUtils
+  *   configuration
+  * @param metadataApi
+  *   PublishOne Metadata API
   */
 @Singleton
 class ValueListCache @Inject()(configUtils: ConfigUtils, metadataApi: MetadataApi) {
@@ -27,7 +28,8 @@ class ValueListCache @Inject()(configUtils: ConfigUtils, metadataApi: MetadataAp
 
   def initCache(types: Seq[(String, NodeType)]): Future[Any] =
     Future.sequence(types.map {
-      case (documentType, nodeType) => cacheValueListMetadata(documentType, nodeType)
+      case (documentType, nodeType) =>
+        cacheValueListMetadata(documentType, nodeType)
     })
 
   def cleanCache(): Unit = {
@@ -80,11 +82,13 @@ class ValueListCache @Inject()(configUtils: ConfigUtils, metadataApi: MetadataAp
     }
 
   private def getValueListCache(valueListName: String): TrieMap[String, String] =
-    valueListItemsCache.getOrElse(valueListName, {
-      val cache = new TrieMap[String, String]()
-      valueListItemsCache += (valueListName -> cache)
-      cache
-    })
+    valueListItemsCache.getOrElse(
+      valueListName, {
+        val cache = new TrieMap[String, String]()
+        valueListItemsCache += (valueListName -> cache)
+        cache
+      }
+    )
 
   private def mapByName(valueListName: String): Boolean =
     valueListName == listItemsFamilyNamePrefix || valueListName == listItemsPrefix || valueListName == listItemsAuthor

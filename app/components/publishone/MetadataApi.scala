@@ -14,12 +14,14 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * PublishOne Metadata API
+/** PublishOne Metadata API
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 class MetadataApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {

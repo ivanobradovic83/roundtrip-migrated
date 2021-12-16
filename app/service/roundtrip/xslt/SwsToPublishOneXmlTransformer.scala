@@ -17,14 +17,10 @@ class SwsToPublishOneXmlTransformer {
     log.info(s"$roundTripDoc applying XSL transformations")
 
     val transformationInputXml =
-      <document> { xml.XML.load(new ByteArrayInputStream(xhtml)) } {xml.XML.load(new ByteArrayInputStream(metaXml))} </document>
+      <document> {xml.XML.load(new ByteArrayInputStream(xhtml))} {xml.XML.load(new ByteArrayInputStream(metaXml))} </document>
     val transformedXml = applyAllTransformations(roundTripDoc, transformationInputXml.toString().getBytes)
     val transformedDocumentXml = (xml.XML.load(new ByteArrayInputStream(transformedXml)) \ "document").toString.getBytes
     val transformedMetaXml = (xml.XML.load(new ByteArrayInputStream(transformedXml)) \ "meta").toString.getBytes
-    // tmp
-    xml.XML.save("./transformed-all.xhtml", xml.XML.load(new ByteArrayInputStream(transformedXml)))
-    xml.XML.save("./transformed-doc.xhtml", xml.XML.load(new ByteArrayInputStream(transformedDocumentXml)))
-    xml.XML.save("./transformed-meta.xhtml", xml.XML.load(new ByteArrayInputStream(transformedMetaXml)))
 
     log.debug(s"$roundTripDoc XSL transformations are applied")
     (transformedDocumentXml, transformedMetaXml)

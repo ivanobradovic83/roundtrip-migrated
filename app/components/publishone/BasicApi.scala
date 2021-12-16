@@ -13,12 +13,14 @@ import util.ConfigUtils
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class contains basic methods for Rest communication with PublishOne
+/** This class contains basic methods for Rest communication with PublishOne
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 abstract class BasicApi(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler) {
 

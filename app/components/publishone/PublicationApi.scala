@@ -10,12 +10,14 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * PublishOne Publication API
+/** PublishOne Publication API
   *
-  * @param configUtils configuration
-  * @param wsClient web client
-  * @param accessTokenHandler access token handler
+  * @param configUtils
+  *   configuration
+  * @param wsClient
+  *   web client
+  * @param accessTokenHandler
+  *   access token handler
   */
 class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, accessTokenHandler: AccessTokenHandler)
     extends BasicApi(configUtils, wsClient, accessTokenHandler) {
@@ -54,9 +56,11 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
     )
   }
 
-  private def checkPublicationCreatedState(profileId: String,
-                                           response: JsValue,
-                                           counter: Int = configUtils.checkOperationStateMaxAttempts): Future[(String, String)] = {
+  private def checkPublicationCreatedState(
+      profileId: String,
+      response: JsValue,
+      counter: Int = configUtils.checkOperationStateMaxAttempts
+  ): Future[(String, String)] = {
     log.debug(s"Checking publication file state: $response")
     val ticket = (response \ "path").as[String].split("/").last
     val state = (response \ "state").as[String]
@@ -79,7 +83,8 @@ class PublicationApi @Inject()(configUtils: ConfigUtils, wsClient: WSClient, acc
     } else {
       throw new Exception(
         s"Publication creation $profileId/$ticket state checked maximum number " +
-          s"of attempts ($configUtils.checkOperationStateMaxAttempts) without detecting success state")
+          s"of attempts ($configUtils.checkOperationStateMaxAttempts) without detecting success state"
+      )
     }
   }
 

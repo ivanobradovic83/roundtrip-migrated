@@ -14,14 +14,15 @@ import java.io.File
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
-  * Controller which handles author mappings feature
+/** Controller which handles author mappings feature
   */
-class AuthorMapperController @Inject()(config: Configuration,
-                                       configUtils: ConfigUtils,
-                                       cc: ControllerComponents,
-                                       controllerValidation: ControllerValidation,
-                                       authorMapperService: AuthorMapperService)(implicit webJarsUtil: WebJarsUtil)
+class AuthorMapperController @Inject()(
+    config: Configuration,
+    configUtils: ConfigUtils,
+    cc: ControllerComponents,
+    controllerValidation: ControllerValidation,
+    authorMapperService: AuthorMapperService
+)(implicit webJarsUtil: WebJarsUtil)
     extends AbstractController(cc) {
 
   lazy val environment: String = config.get[String]("cwc.environment")
@@ -33,7 +34,8 @@ class AuthorMapperController @Inject()(config: Configuration,
     tuple(
       "query" -> text,
       "createMissingDocuments" -> default(boolean, false)
-    ))
+    )
+  )
 
   def index: Action[AnyContent] = Action {
     Ok(views.html.mapAuthors(environment, swsBaseUrl, defaultContentVersion))

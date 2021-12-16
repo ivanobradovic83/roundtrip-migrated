@@ -12,14 +12,16 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * This class handles author list items.
+/** This class handles author list items.
   *
   * It will first try to find it by item name. If it does not exist it will create new one.
   *
-  * @param metadataApi PublishOne Metadata API
-  * @param valueListCache PublishOne value list cache
-  * @param authorListItemsCache PublishOne author list item cache
+  * @param metadataApi
+  *   PublishOne Metadata API
+  * @param valueListCache
+  *   PublishOne value list cache
+  * @param authorListItemsCache
+  *   PublishOne author list item cache
   */
 class AuthorListItemsHandler @Inject()(metadataApi: MetadataApi, valueListCache: ValueListCache, authorListItemsCache: AuthorListItemsCache) {
 
