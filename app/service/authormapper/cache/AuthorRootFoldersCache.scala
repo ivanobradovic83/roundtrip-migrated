@@ -23,13 +23,18 @@ import scala.concurrent.Future
 @Singleton
 class AuthorRootFoldersCache @Inject()(configUtils: ConfigUtils, nodeApi: NodeApi) {
 
-  lazy val rootFoldersCache: TrieMap[String, Int] = new TrieMap[String, Int]()
+  protected[cache] lazy val rootFoldersCache: TrieMap[String, Int] = new TrieMap[String, Int]()
 
   def initCache: Future[Any] =
     if (configUtils.publishOneAuthorsRootFolderId != -1) cacheFirstLevelFolders.map(_ => cacheSecondLevelFolders)
     else Future.successful(())
 
   def cleanCache(): Unit = rootFoldersCache.clear()
+
+  def getRootFolderId(rootFolderName: String): Option[Int] = rootFoldersCache.get(rootFolderName)
+
+  def addOrGetCachedValue(rootFolderName: String, rootFolderId: Int): Int =
+    rootFoldersCache.putIfAbsent(rootFolderName, rootFolderId).getOrElse(rootFolderId)
 
   private def cacheFirstLevelFolders = cacheFolders(configUtils.publishOneAuthorsRootFolderId)
 

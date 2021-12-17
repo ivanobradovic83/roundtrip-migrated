@@ -46,7 +46,7 @@ class AuthorFolderCreator @Inject()(
 
   private def loadTwoLettersAuthorFolder(familyName: String): Future[Int] = {
     val twoLettersFolderName = familyName.substring(0, 2).toLowerCase
-    val twoLettersFolderId = authorRootFoldersCache.rootFoldersCache.get(twoLettersFolderName)
+    val twoLettersFolderId = authorRootFoldersCache.getRootFolderId(twoLettersFolderName)
     if (twoLettersFolderId.isEmpty) createTwoLettersAuthorFolder(familyName, twoLettersFolderName.capitalize)
     else Future.successful(twoLettersFolderId.get)
   }
@@ -54,8 +54,8 @@ class AuthorFolderCreator @Inject()(
   private def createTwoLettersAuthorFolder(familyName: String, twoLettersFolderName: String): Future[Int] = {
     log.info(s"Creating two letters author folder $twoLettersFolderName ...")
     val oneLettersFolderName = familyName.substring(0, 1).toLowerCase
-    val oneLettersFolderId = authorRootFoldersCache.rootFoldersCache.get(oneLettersFolderName)
-    if (oneLettersFolderId.isEmpty) throw new RuntimeException(s"There is no author folder $oneLettersFolderName")
+    val oneLettersFolderId = authorRootFoldersCache.getRootFolderId(oneLettersFolderName)
+    if (oneLettersFolderId.isEmpty) throw new Exception(s"There is no author folder $oneLettersFolderName")
     folderApi
       .createFolder(oneLettersFolderId.get, twoLettersFolderName, documentTypeAuthor)
       .map(cacheCreatedTwoLettersAuthorFolder(twoLettersFolderName, _))
@@ -63,7 +63,7 @@ class AuthorFolderCreator @Inject()(
 
   private def cacheCreatedTwoLettersAuthorFolder(twoLettersFolderName: String, response: JsValue) = {
     val folderId = (response \ "id").as[Int]
-    val cachedFolderId = authorRootFoldersCache.rootFoldersCache.putIfAbsent(twoLettersFolderName.toLowerCase, folderId).getOrElse(folderId)
+    val cachedFolderId = authorRootFoldersCache.addOrGetCachedValue(twoLettersFolderName.toLowerCase, folderId)
     if (folderId != cachedFolderId) nodeOperationApi.deleteNode(folderId, includeDescendants = true)
     cachedFolderId
   }

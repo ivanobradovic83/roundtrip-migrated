@@ -1,0 +1,22 @@
+[
+  {
+    "id": 44462,
+    "title": "Jong, E.S. de",
+    "isLocked": false,
+    "hasChildren": true,
+    "numberOfChildren": 1,
+    "canEdit": true,
+    "nodeType": "folder",
+    "documentTypePath": "/api/documenttypes/auteursbeschrijvingen",
+    "lastModified": "2021-12-09T15:46:18.2738913+00:00",
+    "deadline": null,
+    "documentStatePath": null,
+    "parentId": 44400,
+    "containsDocuments": false,
+    "lockedByUserName": null,
+    "lockedAt": null,
+    "canDelete": false,
+    "canUpdateMetadata": false,
+    "canEditContent": false
+  }
+]

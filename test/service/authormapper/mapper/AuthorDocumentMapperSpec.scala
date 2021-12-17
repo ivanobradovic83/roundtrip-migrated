@@ -3,7 +3,7 @@ package service.authormapper.mapper
 import components.publishone.{MetadataApi, NodeApi}
 import helpers.ScalaSpec
 import helpers.TestUtils.mockedJsonResp
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import service.authormapper.model.{Author, AuthorDocument, AuthorFolder}
 import service.common.cache.ValueListCache
@@ -23,6 +23,12 @@ class AuthorDocumentMapperSpec extends ScalaSpec {
   val metadataApi: MetadataApi = mock[MetadataApi]
   val valueListCache: ValueListCache = mock[ValueListCache]
   val cut = new AuthorDocumentMapper(nodeApi, metadataApi, valueListCache)
+
+  override def beforeEach(): Unit = {
+    reset(nodeApi)
+    reset(metadataApi)
+    reset(valueListCache)
+  }
 
   "when publicationName is correct then map author and document" in {
     when(valueListCache.mapValueListItemId(listItemsPublicationName, author.publicationName)).thenReturn("4456")

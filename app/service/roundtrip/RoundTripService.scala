@@ -35,18 +35,20 @@ import scala.util.{Failure, Success, Try}
   * @param publishOneImporter PublishOne document importer
   * @param publishOnePublisher PublishOne document publisher
   */
-class RoundTripService @Inject()(configUtils: ConfigUtils,
-                                 loggingService: LoggingService,
-                                 inProgressHandler: InProgressHandler,
-                                 accessTokenHandler: AccessTokenHandler,
-                                 valueListCache: ValueListCache,
-                                 swsClient: SwsApi,
-                                 swsSourceApi: SwsSourceApi,
-                                 swsToPublishOneXmlTransformer: SwsToPublishOneXmlTransformer,
-                                 authorDocumentMapper: AuthorDocumentMapper,
-                                 metadataMapper: MetadataMapper,
-                                 publishOneImporter: PublishOneImporter,
-                                 publishOnePublisher: PublishOnePublisher) {
+class RoundTripService @Inject()(
+    configUtils: ConfigUtils,
+    loggingService: LoggingService,
+    inProgressHandler: InProgressHandler,
+    accessTokenHandler: AccessTokenHandler,
+    valueListCache: ValueListCache,
+    swsClient: SwsApi,
+    swsSourceApi: SwsSourceApi,
+    swsToPublishOneXmlTransformer: SwsToPublishOneXmlTransformer,
+    authorDocumentMapper: AuthorDocumentMapper,
+    metadataMapper: MetadataMapper,
+    publishOneImporter: PublishOneImporter,
+    publishOnePublisher: PublishOnePublisher
+) {
 
   private lazy val log = Logger(getClass)
   private implicit val system: ActorSystem = ActorSystem("RoundTripSystem")
@@ -159,10 +161,8 @@ class RoundTripService @Inject()(configUtils: ConfigUtils,
     closeRoundTripProcess()
     val duration = (System.currentTimeMillis() - start) / 1000
     result match {
-      case Failure(exception) =>
-        log.error(s"$roundTripDto failed", exception)
-      case Success(_) =>
-        log.info(s"$roundTripDto done successfully in $duration s")
+      case Failure(exception) => log.error(s"$roundTripDto failed", exception)
+      case Success(_)         => log.info(s"$roundTripDto done successfully in $duration s")
     }
   }
 

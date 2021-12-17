@@ -1,0 +1,79 @@
+[
+  {
+    "displayName": "",
+    "metadataFields": [
+      {
+        "name": "dc-creator",
+        "displayName": "Auteur ",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "selectList",
+        "settings": {
+          "initialValue": null,
+          "multiline": null,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "/api/valuelists/8/items",
+          "multipleSelectList": true,
+          "hierarchicalValueList": false
+        },
+        "value": "[9001]"
+      },
+      {
+        "name": "givenName",
+        "displayName": "Voornaam",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": "Eva"
+      },
+      {
+        "name": "familyName",
+        "displayName": "Achternaam",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": "Jong"
+      },
+      {
+        "name": "initials",
+        "displayName": "Voorletters",
+        "required": false,
+        "canEdit": true,
+        "baseMetadataType": "string",
+        "settings": {
+          "initialValue": null,
+          "multiline": false,
+          "minimumLength": null,
+          "maximumLength": null,
+          "regularExpression": null,
+          "valueListPath": "",
+          "multipleSelectList": null,
+          "hierarchicalValueList": null
+        },
+        "value": "E.S.2."
+      }
+    ]
+  }
+]

@@ -13,8 +13,12 @@ Workflow has to be configured in the next way (for administrator user):
 ## Build & test
 sbt clean test
 
+## Tests & Coverage
+sbt clean coverage test coverageReport
+check out coverage report in target/scala-2.13/scoverage-report/index.html
+
 ## Sanity Check
-sbt scalafmtCheck test:scalafmtCheck
+sbt scalafmt::test test:scalafmt::test
 
 ## Release
-sbt -DsduTeam=cwc -Dsbt.gigahorse=false release
+go to GitHub web UI, navigate to Actions tab and run "Release acc" workflow

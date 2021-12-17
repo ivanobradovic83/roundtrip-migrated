@@ -26,7 +26,7 @@ class AuthorListItemsCacheSpec extends ScalaSpec {
 
   "initialized cache for empty value list should be empty" in {
     when(valueListCache.mapValueListId(listItemsAuthor)).thenReturn(Some(authorsValueListId))
-    when(metadataApi.getValueListItems(authorsValueListId)).thenReturn(mockedJsonResp("value-list-cache-empty-8"))
+    when(metadataApi.getValueListItems(authorsValueListId)).thenReturn(mockedJsonResp("empty-list"))
 
     Await.result(cut.initCache(), 10.seconds)
     cut.nextAuthorKeyNo should be(empty)

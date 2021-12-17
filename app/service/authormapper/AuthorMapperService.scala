@@ -1,6 +1,8 @@
 package service.authormapper
 
 import akka.actor.ActorSystem
+import akka.stream.ActorAttributes.withSupervisionStrategy
+import akka.stream.Supervision.resumingDecider
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.github.tototoshi.csv.CSVWriter
@@ -22,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import javax.inject.Inject
+import scala.util.{Failure, Success, Try}
 
 /** This service creates and runs Akka streams flow which creates mapping file between author (from SWS document metadata) and PublishOne
   * folder/document
@@ -63,55 +66,52 @@ class AuthorMapperService @Inject()(
   private val mappedAuthorsCache = new java.util.concurrent.ConcurrentHashMap[String, Boolean]
   private val mappedFoldersCounter = new AtomicInteger(0)
   private val mappedDocumentsCounter = new AtomicInteger(0)
-  private val cacheValueListTypes = Seq(
+  private lazy val cacheValueListTypes = Seq(
     documentTypeAuthor -> NodeTypes.Document,
     documentTypeAuthor -> NodeTypes.Folder
   )
+  private lazy val csvFilePath = Paths.get(configUtils.publishOneAuthorMappingFile)
 
   def map(swsQuery: String, createMissingDocuments: Boolean): Unit = {
     log.info(s"Mapping authors for SWS query $swsQuery ...")
-    inProgressHandler.startProcess(getClass.getSimpleName)
-    val file = initCsvFile()
+
     val start = System.currentTimeMillis()
-    beforeMappingFlow
-      .flatMap(_ => runMappingFlow(swsQuery, createMissingDocuments, file))
-      .onComplete(_ => mappingFlowComplete(start))
+    initAuthorsMapping
+      .flatMap(_ => runMappingFlow(swsQuery, createMissingDocuments))
+      .onComplete(onMappingFlowComplete(_, start))
   }
 
-  private def beforeMappingFlow: Future[Unit] =
+  private def initAuthorsMapping: Future[Unit] = {
+    inProgressHandler.startProcess(getClass.getSimpleName)
+    writeCsvHeader(csvFilePath)
     for {
       _ <- accessTokenHandler.accessToken
       _ <- valueListCache.initCache(cacheValueListTypes) zip authorRootFoldersCache.initCache
       _ <- authorListItemsCache.initCache()
     } yield ()
+  }
 
-  private def runMappingFlow(swsQuery: String, createMissingDocuments: Boolean, file: Path) = {
-    val parallelism = 4
+  private def runMappingFlow(swsQuery: String, createMissingDocuments: Boolean) = {
     var flow = swsSourceApi
       .searchAndStreamDocs(swsQuery)
-      .mapAsyncUnordered(parallelism)(fetchDocument)
+      .mapAsyncUnordered(configUtils.parallelism)(fetchDocument)
       .map(extractAuthors)
       .flatMapConcat(Source(_))
       .filter(validNotAlreadyMappedAuthor)
       .async
-      .mapAsyncUnordered(parallelism)(authorFolderMapper.map)
-      .mapAsyncUnordered(parallelism)(mapAuthorDocument)
+      .mapAsyncUnordered(configUtils.parallelism)(mapAuthorFolder)
+      .mapAsyncUnordered(configUtils.parallelism)(mapAuthorDocument)
       .async
     if (createMissingDocuments) {
       flow = flow
-        .mapAsyncUnordered(parallelism)(createAuthorFolderIfMissing)
-        .mapAsyncUnordered(parallelism)(createAuthorDocumentIfMissing)
+        .mapAsyncUnordered(configUtils.parallelism)(createAuthorFolderIfMissing)
+        .mapAsyncUnordered(configUtils.parallelism)(createAuthorDocumentIfMissing)
         .async
     }
     flow
       .map(toCsvRow)
-      .runWith(FileIO.toPath(file, Set(WRITE, APPEND, CREATE)))
-  }
-
-  private def initCsvFile(): Path = {
-    val file = Paths.get(configUtils.publishOneAuthorMappingFile)
-    writeCsvHeader(file)
-    file
+      .withAttributes(withSupervisionStrategy(resumingDecider))
+      .runWith(FileIO.toPath(csvFilePath, Set(WRITE, APPEND, CREATE)))
   }
 
   private def writeCsvHeader(file: Path): Unit = {
@@ -145,7 +145,7 @@ class AuthorMapperService @Inject()(
 
   private def fetchDocument(docKey: String) = {
     log.info(s"Fetching document $docKey ...")
-    swsApi.getMetaXml(docKey).map((docKey, _))
+    swsApi.getMetaXml(docKey).map((docKey, _)).recover(recover("getMetaXml", docKey))
   }
 
   private def extractAuthors(docKeyAndContent: (String, Array[Byte])): Seq[Author] = {
@@ -169,16 +169,28 @@ class AuthorMapperService @Inject()(
     }
   }
 
+  private def mapAuthorFolder(author: Author) =
+    authorFolderMapper
+      .map(author)
+      .map((author, _))
+      .recover(recover("mapAuthorFolder", author.toString))
+
   private def mapAuthorDocument(authorAndFolder: (Author, Option[AuthorFolder])) = {
     if (authorAndFolder._2.nonEmpty)
-      authorDocumentMapper.map(authorAndFolder._1, authorAndFolder._2.get).map((authorAndFolder._1, authorAndFolder._2, _))
+      authorDocumentMapper
+        .map(authorAndFolder._1, authorAndFolder._2.get)
+        .map((authorAndFolder._1, authorAndFolder._2, _))
+        .recover(recover("mapAuthorDocument", authorAndFolder.toString))
     else Future.successful((authorAndFolder._1, authorAndFolder._2, Option.empty[AuthorDocument]))
   }
 
   private def createAuthorFolderIfMissing(authorFolderDoc: AuthorFolderDoc): Future[AuthorFolderDoc] = {
     authorFolderDoc match {
       case (author, folder, document) if folder.isEmpty =>
-        authorFolderCreator.create(author).map(newFolder => (author, Some(newFolder), document))
+        authorFolderCreator
+          .create(author)
+          .map(newFolder => (author, Some(newFolder), document))
+          .recover(recover("createAuthorFolderIfMissing", authorFolderDoc.toString))
       case _ => Future.successful(authorFolderDoc)
     }
   }
@@ -186,7 +198,10 @@ class AuthorMapperService @Inject()(
   private def createAuthorDocumentIfMissing(authorFolderDoc: AuthorFolderDoc): Future[AuthorFolderDoc] = {
     authorFolderDoc match {
       case (author, folder, document) if document.isEmpty =>
-        authorDocumentCreator.create(author, folder.get).map(newDocument => (author, folder, Option(newDocument)))
+        authorDocumentCreator
+          .create(author, folder.get)
+          .map(newDocument => (author, folder, Option(newDocument)))
+          .recover(recover("createAuthorDocumentIfMissing", authorFolderDoc.toString))
       case _ => Future.successful(authorFolderDoc)
     }
   }
@@ -211,20 +226,28 @@ class AuthorMapperService @Inject()(
     sw.toString
   }
 
-  private def mappingFlowComplete(start: Long): Unit = {
-    val duration = (System.currentTimeMillis() - start) / 1000
-    val nonMappedAuthorsCount = mappedAuthorsCache.size() - mappedFoldersCounter.get
-    log.info(
-      s"Mapping authors for SWS query done in $duration s" +
-        s"\nTotal authors processed: ${mappedAuthorsCache.size}" +
-        s"\nMapped author folders/documents count: $mappedFoldersCounter / $mappedDocumentsCounter" +
-        s"\nNon mapped authors count: $nonMappedAuthorsCount"
-    )
-    clean()
-    inProgressHandler.stopProcess(getClass.getSimpleName)
+  private def recover[T](flowInfo: String, additionalInfo: String): PartialFunction[Throwable, T] = {
+    case e: Throwable =>
+      log.error(s"$flowInfo $additionalInfo: ${e.getMessage}")
+      throw e
   }
 
-  private def clean(): Unit = {
+  private def onMappingFlowComplete[A](result: Try[A], start: Long): Unit = {
+    val duration = (System.currentTimeMillis() - start) / 1000
+    val nonMappedAuthorsCount = mappedAuthorsCache.size() - mappedFoldersCounter.get
+    val message = s"\nMapping authors for SWS query done in $duration s" +
+      s"\nTotal authors processed: ${mappedAuthorsCache.size}" +
+      s"\nMapped author folders/documents count: $mappedFoldersCounter / $mappedDocumentsCounter" +
+      s"\nNon mapped authors count: $nonMappedAuthorsCount"
+    result match {
+      case Failure(exception) => log.error(s"Mapping failed $message", exception)
+      case Success(_)         => log.info(s"Mapping done successfully $message")
+    }
+    closeMappingProcess()
+  }
+
+  private def closeMappingProcess(): Unit = {
+    inProgressHandler.stopProcess(getClass.getSimpleName)
     mappedAuthorsCache.clear()
     mappedFoldersCounter.set(0)
     mappedDocumentsCounter.set(0)

@@ -23,10 +23,11 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
   private lazy val log = Logger(getClass)
   case class FolderMetadata(familyName: String, givenName: String, initials: String, authorItemId: String)
   type MappingFilter = (Author, FolderMetadata) => Boolean
+  lazy val filters: Seq[MappingFilter] = Seq[MappingFilter](filterByFamilyGivenNameInitials, filterByFamilyGivenName, filterByFamilyNameInitials)
 
-  def map(author: Author): Future[(Author, Option[AuthorFolder])] = {
+  def map(author: Author): Future[Option[AuthorFolder]] = {
     log.info(s"$author Mapping author folder ...")
-    mapAuthorToFolder(author, author.familyName, author.givenName).map((author, _))
+    mapAuthorToFolder(author, author.familyName, author.givenName)
   }
 
   private def mapAuthorToFolder(author: Author, familyName: String, givenName: String): Future[Option[AuthorFolder]] =
@@ -47,32 +48,28 @@ class AuthorFolderMapper @Inject()(nodeApi: NodeApi) {
 
   private def mapAuthorToFolderByFilteringFoldersMetadata(folders: Seq[AuthorFolder], author: Author): Future[Option[AuthorFolder]] = {
     log.info(s"Trying to map $author by folders metadata $folders ...")
-    getAuthorFolderMetadata(folders.head.id)
-      .flatMap { folderMetadata =>
-        val filters = Seq[MappingFilter](filterByFamilyGivenNameInitials, filterByFamilyGivenName, filterByFamilyNameInitials)
-        applyFilters(author, folders.head, folderMetadata, filters) match {
-          case Some(mappedFolder) =>
-            mappedFolder.authorItemId = folderMetadata.authorItemId
-            folderFound(author, mappedFolder)
-          case None if folders.size == 1 => folderNotFound(author)
-          case None                      => mapAuthorToFolderByFilteringFoldersMetadata(folders.tail, author)
-        }
-      }
+    getAllFoldersMetadata(folders).map(applyFilters(author, _, filters))
   }
+
+  private def getAllFoldersMetadata(folders: Seq[AuthorFolder]) =
+    Future.sequence(folders.map(folder => getAuthorFolderMetadata(folder.id))).map(folders zip _)
 
   @tailrec
   private def applyFilters(
       author: Author,
-      folder: AuthorFolder,
-      folderMetadata: FolderMetadata,
+      foldersMetadata: Seq[(AuthorFolder, FolderMetadata)],
       filters: Seq[MappingFilter]
-  ): Option[AuthorFolder] = {
-    filters.head.apply(author, folderMetadata) match {
-      case true                       => Option(folder)
-      case false if filters.size == 1 => Option.empty
-      case _                          => applyFilters(author, folder, folderMetadata, filters.tail)
+  ): Option[AuthorFolder] =
+    applyFilter(author, foldersMetadata, filters.head) match {
+      case Some((folder, metadata)) =>
+        folder.authorItemId = metadata.authorItemId
+        Some(folder)
+      case None if filters.size == 1 => None
+      case _                         => applyFilters(author, foldersMetadata, filters.tail)
     }
-  }
+
+  private def applyFilter(author: Author, foldersMetadata: Seq[(AuthorFolder, FolderMetadata)], filter: MappingFilter) =
+    foldersMetadata.find { case (_, metadata) => filter.apply(author, metadata) }
 
   private def filterByFamilyGivenNameInitials(author: Author, folderMetadata: FolderMetadata) =
     compare(folderMetadata.familyName, author.familyName) && compare(folderMetadata.givenName, author.givenName) && compare(

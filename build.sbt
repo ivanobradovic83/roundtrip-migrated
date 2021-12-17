@@ -114,4 +114,15 @@ dockerEnvVars := Map("TZ" -> "Europe/Amsterdam")
 scalafmtOnCompile in ThisBuild := true
 
 //Coverage report
-coverageExcludedPackages := """<empty>;Reverse.*;controllers;router.Routes.*;Application.*;build;views.html"""
+//coverageExcludedPackages := """<empty>;Reverse.*;controllers;router.Routes.*;Application.*;build;views.*"""
+coverageExcludedPackages := Seq(
+  "<empty>",
+  "Reverse.*",
+  "components.*",
+  "router.Routes.*",
+  "build",
+  "views.*"
+).mkString(";")
+
+//After tests are implement uncomment line below
+//coverageMinimum := 85
