@@ -76,4 +76,4 @@ jobs:
           publish-docker-image: true
           docker-tag-prefix: acc
           use-tag-prefix-with-project-version: false
-#          deploy-no-aws-at: true
+          deploy-no-aws-at: true
