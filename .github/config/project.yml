@@ -7,4 +7,4 @@ eks-deploy-deployments: sdu-cwc-roundtrip-publishone
 # sdu-devops repository
 sdu-devops-repository: elseu/sdu-devops
 # sdu-devops branch name used to pull GitHub action templates
-sdu-devops-branch: feature/CWC-4296
+sdu-devops-branch: master
